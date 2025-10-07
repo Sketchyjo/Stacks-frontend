@@ -45,9 +45,9 @@ interface ViewableItemsChanged {
 const onboardingSlides: OnboardingSlide[] = [
   {
     key: '1',
-    title: 'Web3 + TradFi\nHybrid Investing',
+    title: 'Banks\nAre Mid',
     description:
-      'Experience the best of both worlds with our hybrid platform that combines traditional finance with Web3 technology for faster, fairer investing.',
+      'We’re flipping the script—no suits, no gatekeeping, just DeFi speed and TradFi clout. Your money, your rules.',
     image: onBoard1,
     backgroundColor: '#1E1A3E',
     textColor: 'text-[#949FFF]',
@@ -58,9 +58,9 @@ const onboardingSlides: OnboardingSlide[] = [
   },
   {
     key: '2',
-    title: 'Instant Deposits\nWith Stablecoins',
+    title: 'Top-Up\nIn A Blink',
     description:
-      'Fund your account instantly with stablecoins from EVM and Solana chains. No more waiting for bank transfers to start investing!',
+      'Stablecoins on EVM & Solana hit your wallet faster than your ex’s apology. Zero waiting, all flexing.',
     image: onBoard2,
     backgroundColor: '#D4FF00',
     textColor: 'text-black',
@@ -70,9 +70,9 @@ const onboardingSlides: OnboardingSlide[] = [
   },
   {
     key: '3',
-    title: 'Expert-Curated\nInvestment Baskets',
+    title: 'Invest\nLike A Stan',
     description:
-      'Choose from expertly designed investment baskets like Tech Growth and Sustainability. Simplified investing for maximum impact.',
+      'Pre-built baskets curated by the smartest nerds. Tech moonshots, eco glow-ups—pick your vibe, we’ll handle the rest.',
     image: onBoard3,
     backgroundColor: '#EAE8FF',
     textColor: 'text-[#1E1F4B]',
@@ -82,12 +82,12 @@ const onboardingSlides: OnboardingSlide[] = [
   },
   {
     key: '4',
-    title: 'Smart Cards\nSmarter Wealth',
+    title: 'Swipe\nStack & Repeat',
     description:
-      'Get physical and virtual debit cards that automatically round up purchases and invest the difference. Earn cashback directly into your investment portfolio!',
+      'Cop a card that rounds up every latte and yeets the spare change straight into your portfolio. Cash-back? More like bag-back.',
     image: cards,
-    backgroundColor: '#EAE8FF',
-    textColor: 'text-[#1E1F4B]',
+    backgroundColor: '#f39abe',
+    textColor: 'text-[#fb088f]',
     indicatorBg: 'bg-slate-400/50',
     indicatorActiveBg: 'bg-slate-800',
     imageStyle: { width: width, height: height * 0.6 }, // Different size for cards image
@@ -205,9 +205,11 @@ export default function App() {
           className="w-full rounded-full bg-slate-900 p-4"
           onPress={() => router.push('/(tabs)')}
         >
-          <Text className="text-center text-lg font-bold text-white">Sign up with Apple</Text>
+          <Text className="text-center text-lg font-bold text-white">Continue with apple</Text>
         </TouchableOpacity>
-        <Text className='mt-4 text-center text-[14px] font-body text-white'>Continue with email</Text>
+       <TouchableOpacity  onPress={() => router.push('/(auth)')}>
+         <Text className='mt-4 text-center text-[14px] font-body text-white'>Continue with email</Text>
+       </TouchableOpacity>
       </View>
     </View>
   );

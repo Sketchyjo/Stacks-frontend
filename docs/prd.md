@@ -57,12 +57,12 @@ The financial market for Gen Z is underserved. Traditional banking alienates you
 
 2. **Stablecoin Deposits**  
    - Support deposits from at least one EVM chain (e.g., Ethereum) and one non-EVM chain (e.g., Solana).  
-   - Conversion into stablecoins for immediate use as buying power.  
+   - Conversion into stablecoins for immediate use as buying power.
 
 3. **Investment Flow**  
    - Automatic conversion of stablecoins into fiat-equivalent buying power.  
    - Ability to invest in curated baskets of stocks/ETFs.  
-   - Simple portfolio view with performance tracking.  
+   - Simple portfolio view with performance tracking.
 
 4. **Curated Investment Baskets**  
    - Launch with 5–10 “expert-curated” investment baskets (e.g., Tech Growth, Sustainability, ETFs).  

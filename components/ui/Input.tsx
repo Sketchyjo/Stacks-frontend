@@ -34,15 +34,15 @@ export const Input = forwardRef<TextInput, InputProps>(
     return (
       <View className={`w-full ${containerClassName}`}>
         {label && (
-          <Text className="mb-2 text-sm font-sf-pro-rounded-medium text-gray-700">
+          <Text className="mb-2 text-[14px] font-sf-pro-semibold text-gray-700">
             {label}
           </Text>
         )}
         <View className="relative">
           <TextInput
             ref={ref}
-            className={`w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4 font-sf-pro-rounded-regular text-base text-gray-900 focus:border-gray-400 focus:bg-white ${
-              leftIcon ? 'pl-12' : ''
+            className={`w-full rounded-2xl border-2 border-gray-400 bg-gray-50 px-4 py-[18px] font-body text-[14px] text-gray-900 focus:border-gray-400 focus:bg-white ${
+              leftIcon ? 'pl-12 ' : ''
             } ${rightIcon ? 'pr-12' : ''} ${className}`}
             placeholderTextColor="#9CA3AF"
             {...props}

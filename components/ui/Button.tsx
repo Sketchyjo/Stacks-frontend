@@ -88,7 +88,7 @@ export const Button: React.FC<ButtonProps> = ({
         <View className="flex-row items-center">
           {leftIcon && <View className="mr-2">{leftIcon}</View>}
           <Text
-            className={`font-sf-pro-rounded-semibold ${getTextSize()} ${getTextStyles()}`}
+            className={`font-body-semibold ${getTextSize()} ${getTextStyles()}`}
           >
             {title}
           </Text>

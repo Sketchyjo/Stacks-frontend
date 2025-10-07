@@ -1,6 +1,5 @@
 import React from 'react'
 import { Tabs } from 'expo-router'
-import FloatingTabBar from '@/components/FloatingTabBar'
 import { CreditCard, Home, User, DollarSign } from 'lucide-react-native'
 
 export default function _layout() {
@@ -11,6 +10,7 @@ export default function _layout() {
         //  tabBarStyle: { display: 'none' }, // Hide the default tab bar
         tabBarInactiveTintColor: "#888",
         tabBarActiveTintColor: "#2C2C2C",
+        sceneStyle: { backgroundColor: '#fff' },
        }}
     
      >
