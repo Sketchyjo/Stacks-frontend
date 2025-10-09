@@ -1,11 +1,5 @@
 import React, { forwardRef } from 'react';
-import {
-  TextInput,
-  TextInputProps,
-  View,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import { TextInput, TextInputProps, View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface InputProps extends TextInputProps {
@@ -34,9 +28,7 @@ export const Input = forwardRef<TextInput, InputProps>(
     return (
       <View className={`w-full ${containerClassName}`}>
         {label && (
-          <Text className="mb-2 text-[14px] font-sf-pro-semibold text-gray-700">
-            {label}
-          </Text>
+          <Text className="mb-2 font-sf-pro-semibold text-[14px] text-gray-700">{label}</Text>
         )}
         <View className="relative">
           <TextInput
@@ -53,18 +45,13 @@ export const Input = forwardRef<TextInput, InputProps>(
             </View>
           )}
           {rightIcon && (
-            <TouchableOpacity
-              className="absolute right-4 top-4"
-              onPress={onRightIconPress}
-            >
+            <TouchableOpacity className="absolute right-4 top-4" onPress={onRightIconPress}>
               <Ionicons name={rightIcon} size={20} color="#9CA3AF" />
             </TouchableOpacity>
           )}
         </View>
         {error && (
-          <Text className="mt-1 text-sm font-sf-pro-rounded-regular text-red-500">
-            {error}
-          </Text>
+          <Text className="font-sf-pro-rounded-regular mt-1 text-sm text-red-500">{error}</Text>
         )}
       </View>
     );

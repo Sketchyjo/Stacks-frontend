@@ -1,6 +1,6 @@
 /**
  * Fonts Configuration
- * 
+ *
  * This file manages all custom fonts used in the application.
  * It provides TypeScript types and mappings for safe font usage.
  */
@@ -17,7 +17,7 @@ export const FONT_FAMILIES = {
     BLACK: 'MDNichromeTest-BlackOblique',
     ULTRA: 'MDNichromeTest-UltraOblique',
   },
-  
+
   // SF Pro Rounded font family
   SF_PRO_ROUNDED: {
     ULTRALIGHT: 'SF-Pro-Rounded-Ultralight',
@@ -48,7 +48,7 @@ export const FONT_WEIGHTS = {
     800: FONT_FAMILIES.MDNICHROME.BLACK,
     900: FONT_FAMILIES.MDNICHROME.ULTRA,
   },
-  
+
   // SF Pro Rounded weights
   SF_PRO_ROUNDED: {
     100: FONT_FAMILIES.SF_PRO_ROUNDED.ULTRALIGHT,
@@ -76,9 +76,10 @@ export const FONT_FILES = {
   [FONT_FAMILIES.MDNICHROME.BOLD]: require('../assets/fonts/MDNichromeTest-BoldOblique.otf'),
   [FONT_FAMILIES.MDNICHROME.BLACK]: require('../assets/fonts/MDNichromeTest-BlackOblique.otf'),
   [FONT_FAMILIES.MDNICHROME.ULTRA]: require('../assets/fonts/MDNichromeTest-UltraOblique.otf'),
-  
+
   // SF Pro Rounded fonts
-  [FONT_FAMILIES.SF_PRO_ROUNDED.ULTRALIGHT]: require('../assets/fonts/SF-Pro-Rounded-Ultralight.otf'),
+  [FONT_FAMILIES.SF_PRO_ROUNDED
+    .ULTRALIGHT]: require('../assets/fonts/SF-Pro-Rounded-Ultralight.otf'),
   [FONT_FAMILIES.SF_PRO_ROUNDED.THIN]: require('../assets/fonts/SF-Pro-Rounded-Thin.otf'),
   [FONT_FAMILIES.SF_PRO_ROUNDED.LIGHT]: require('../assets/fonts/SF-Pro-Rounded-Light.otf'),
   [FONT_FAMILIES.SF_PRO_ROUNDED.REGULAR]: require('../assets/fonts/SF-Pro-Rounded-Regular.otf'),
@@ -94,9 +95,9 @@ export const FONT_FILES = {
  */
 export type MDNichromeFontVariant = keyof typeof FONT_FAMILIES.MDNICHROME;
 export type SFProRoundedFontVariant = keyof typeof FONT_FAMILIES.SF_PRO_ROUNDED;
-export type CustomFontFamily = 
-  | typeof FONT_FAMILIES.MDNICHROME[MDNichromeFontVariant]
-  | typeof FONT_FAMILIES.SF_PRO_ROUNDED[SFProRoundedFontVariant];
+export type CustomFontFamily =
+  | (typeof FONT_FAMILIES.MDNICHROME)[MDNichromeFontVariant]
+  | (typeof FONT_FAMILIES.SF_PRO_ROUNDED)[SFProRoundedFontVariant];
 
 /**
  * Helper functions for font usage
@@ -108,14 +109,14 @@ export const FontHelpers = {
   getMDNichromeByWeight: (weight: keyof typeof FONT_WEIGHTS.MDNICHROME) => {
     return FONT_WEIGHTS.MDNICHROME[weight];
   },
-  
+
   /**
    * Get SF Pro Rounded font by weight
    */
   getSFProRoundedByWeight: (weight: keyof typeof FONT_WEIGHTS.SF_PRO_ROUNDED) => {
     return FONT_WEIGHTS.SF_PRO_ROUNDED[weight];
   },
-  
+
   /**
    * Get all available font names as array
    */
@@ -136,7 +137,7 @@ export const FONT_PRESETS = {
   BODY_TEXT: FONT_FAMILIES.SF_PRO_ROUNDED.REGULAR,
   BODY_TEXT_LIGHT: FONT_FAMILIES.SF_PRO_ROUNDED.LIGHT,
   CAPTION: FONT_FAMILIES.SF_PRO_ROUNDED.MEDIUM,
-  
+
   // Stylistic fonts
   DISPLAY_CREATIVE: FONT_FAMILIES.MDNICHROME.BOLD,
   DISPLAY_ARTISTIC: FONT_FAMILIES.MDNICHROME.ULTRA,

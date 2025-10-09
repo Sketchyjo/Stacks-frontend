@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StatusBar,
-  Alert,
-  AccessibilityInfo,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StatusBar, Alert, AccessibilityInfo } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { OTPInput, Button } from '../../components/ui';
@@ -31,50 +24,53 @@ export default function VerifyEmail() {
   }, [resendTimer]);
 
   // Validate OTP code and handle routing
-  const validateOTP = useCallback(async (code: string) => {
-    if (code.length !== 6) {
-      return false;
-    }
+  const validateOTP = useCallback(
+    async (code: string) => {
+      if (code.length !== 6) {
+        return false;
+      }
 
-    setIsLoading(true);
-    
-    // Simulate API call
-    return new Promise<boolean>((resolve) => {
-      setTimeout(() => {
-        setIsLoading(false);
-        // For demo purposes, accept only 123456 as valid code
-        const isValid = code === '123456';
-        
-        if (isValid) {
-          // Success state
-          setIsInvalid(false);
-          setError('');
-          
-         router.replace('/(tabs)')
-        } else {
-          // Error state
-          setIsInvalid(true);
-          setError('Invalid verification code. Try 123456 for demo.');
-          
-          // Announce error to screen readers
-          AccessibilityInfo.isScreenReaderEnabled().then(
-            screenReaderEnabled => {
+      setIsLoading(true);
+
+      // Simulate API call
+      return new Promise<boolean>((resolve) => {
+        setTimeout(() => {
+          setIsLoading(false);
+          // For demo purposes, accept only 123456 as valid code
+          const isValid = code === '123456';
+
+          if (isValid) {
+            // Success state
+            setIsInvalid(false);
+            setError('');
+
+            router.replace('/(tabs)');
+          } else {
+            // Error state
+            setIsInvalid(true);
+            setError('Invalid verification code. Try 123456 for demo.');
+
+            // Announce error to screen readers
+            AccessibilityInfo.isScreenReaderEnabled().then((screenReaderEnabled) => {
               if (screenReaderEnabled) {
-                AccessibilityInfo.announceForAccessibility('Invalid verification code. Please try again.');
+                AccessibilityInfo.announceForAccessibility(
+                  'Invalid verification code. Please try again.'
+                );
               }
-            }
-          );
-        }
-        
-        resolve(isValid);
-      }, 1500);
-    });
-  }, [router]);
+            });
+          }
+
+          resolve(isValid);
+        }, 1500);
+      });
+    },
+    [router]
+  );
 
   const handleOTPComplete = async (code: string) => {
     setOtp(code);
     setError('');
-    
+
     // Auto-validate when all digits are entered
     await validateOTP(code);
   };
@@ -95,24 +91,22 @@ export default function VerifyEmail() {
     setIsResendLoading(true);
     setError('');
     setIsInvalid(false);
-    
+
     // Simulate API call
     setTimeout(() => {
       setIsResendLoading(false);
       setResendTimer(60);
       setCanResend(false);
       setOtp(''); // Clear current OTP input
-      
+
       Alert.alert('Code Sent', 'A new verification code has been sent to your email.');
-      
+
       // Announce to screen readers
-      AccessibilityInfo.isScreenReaderEnabled().then(
-        screenReaderEnabled => {
-          if (screenReaderEnabled) {
-            AccessibilityInfo.announceForAccessibility('New verification code sent to your email');
-          }
+      AccessibilityInfo.isScreenReaderEnabled().then((screenReaderEnabled) => {
+        if (screenReaderEnabled) {
+          AccessibilityInfo.announceForAccessibility('New verification code sent to your email');
         }
-      );
+      });
     }, 1500);
   };
 
@@ -134,23 +128,18 @@ export default function VerifyEmail() {
       <View className="flex-1 px-6 pb-6">
         {/* Title */}
         <View className="mb-8 mt-8">
-          <Text 
-            className="font-heading text-[34px] text-gray-900"
-            accessibilityRole="header"
-          >
+          <Text className="font-heading text-[34px] text-gray-900" accessibilityRole="header">
             Confirm email
           </Text>
           <View className="mt-4">
-            <Text 
+            <Text
               className="font-sf-pro-medium text-[18px] text-gray-600"
-              accessibilityLabel="The code has been sent to"
-            >
+              accessibilityLabel="The code has been sent to">
               The code has been sent to
             </Text>
-            <Text 
+            <Text
               className="mt-1 font-heading-light text-[28px] text-gray-900"
-              accessibilityLabel={`Email: ${email || 'your email'}`}
-            >
+              accessibilityLabel={`Email: ${email || 'your email'}`}>
               {email || 'your email'}
             </Text>
           </View>
@@ -158,10 +147,9 @@ export default function VerifyEmail() {
 
         {/* Instructions */}
         <View className="mb-8">
-          <Text 
+          <Text
             className="font-sf-pro-medium text-base text-gray-600"
-            accessibilityLabel="Please check your inbox and paste the code from the email below"
-          >
+            accessibilityLabel="Please check your inbox and paste the code from the email below">
             Please check your inbox and{'\n'}paste the code from the email below
           </Text>
         </View>
@@ -177,17 +165,14 @@ export default function VerifyEmail() {
           />
           <TouchableOpacity
             onPress={handlePasteCode}
-            className="mt-4 items-center justify-center mx-auto rounded-full bg-gray-100 px-4 py-2 w-[30%]"
+            className="mx-auto mt-4 w-[30%] items-center justify-center rounded-full bg-gray-100 px-4 py-2"
             accessibilityLabel="Paste verification code"
             accessibilityHint="Tap to paste verification code from clipboard"
-            accessibilityRole="button"
-          >
-            <Text className="font-sf-pro-medium text-[14px] text-gray-600">
-              Paste
-            </Text>
+            accessibilityRole="button">
+            <Text className="font-sf-pro-medium text-[14px] text-gray-600">Paste</Text>
           </TouchableOpacity>
         </View>
-    
+
         <View className="flex-1" />
 
         {/* Verify Button */}
@@ -197,7 +182,7 @@ export default function VerifyEmail() {
             onPress={handleVerify}
             loading={isLoading}
             disabled={otp.length !== 6 || isLoading}
-            className='rounded-full'
+            className="rounded-full"
             accessibilityLabel="Verify Email"
             accessibilityHint="Tap to verify your email with the entered code"
           />
@@ -212,17 +197,15 @@ export default function VerifyEmail() {
               className="py-2"
               accessibilityLabel="Didn't receive the code? Resend"
               accessibilityHint="Tap to request a new verification code"
-              accessibilityRole="button"
-            >
+              accessibilityRole="button">
               <Text className="font-sf-pro-rounded-medium text-base text-gray-900">
                 {isResendLoading ? 'Sending...' : "Didn't receive the code? Resend"}
               </Text>
             </TouchableOpacity>
           ) : (
-            <Text 
+            <Text
               className="py-2 font-sf-pro-semibold text-base text-gray-500"
-              accessibilityLabel={`Resend code in ${resendTimer} seconds`}
-            >
+              accessibilityLabel={`Resend code in ${resendTimer} seconds`}>
               Resend code in {resendTimer}s
             </Text>
           )}

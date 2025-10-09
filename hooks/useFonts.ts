@@ -15,17 +15,17 @@ export interface FontLoadingResult {
    * Current loading state
    */
   state: FontLoadingState;
-  
+
   /**
    * Whether fonts are loaded and ready to use
    */
   fontsLoaded: boolean;
-  
+
   /**
    * Error message if loading failed
    */
   error: string | null;
-  
+
   /**
    * Function to retry loading fonts
    */
@@ -34,13 +34,13 @@ export interface FontLoadingResult {
 
 /**
  * Custom hook for loading and managing fonts
- * 
+ *
  * This hook handles:
  * - Loading all custom fonts asynchronously
  * - Providing loading states for UI feedback
  * - Error handling with retry functionality
  * - TypeScript safety
- * 
+ *
  * @returns FontLoadingResult object with loading state and utilities
  */
 export const useFonts = (): FontLoadingResult => {
@@ -57,10 +57,11 @@ export const useFonts = (): FontLoadingResult => {
 
       // Load all custom fonts
       await Font.loadAsync(FONT_FILES);
-      
+
       setState('loaded');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred while loading fonts';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Unknown error occurred while loading fonts';
       console.error('Font loading error:', errorMessage);
       setError(errorMessage);
       setState('error');
@@ -90,7 +91,7 @@ export const useFonts = (): FontLoadingResult => {
 /**
  * Higher-order component factory for font loading
  * This is moved to a separate .tsx file to avoid JSX in .ts files
- * 
+ *
  * Usage:
  * ```tsx
  * import { withFonts } from '../hooks/withFonts';
@@ -116,17 +117,13 @@ export const FontValidation = {
    * Get all loaded fonts
    */
   getLoadedFonts: (): string[] => {
-    return FontHelpers.getAllFontNames().filter(fontName => 
-      Font.isLoaded(fontName)
-    );
+    return FontHelpers.getAllFontNames().filter((fontName) => Font.isLoaded(fontName));
   },
 
   /**
    * Validate if all custom fonts are loaded
    */
   areAllCustomFontsLoaded: (): boolean => {
-    return FontHelpers.getAllFontNames().every(fontName => 
-      Font.isLoaded(fontName)
-    );
+    return FontHelpers.getAllFontNames().every((fontName) => Font.isLoaded(fontName));
   },
 };

@@ -26,10 +26,10 @@ export default function SignUp() {
   const [isLoading, setIsLoading] = useState(false);
 
   const updateField = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -80,17 +80,14 @@ export default function SignUp() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="white" />
-      
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-      >
+        className="flex-1">
         <ScrollView
           className="flex-1"
           contentContainerStyle={{ flexGrow: 1 }}
-          keyboardShouldPersistTaps="handled"
-        >
-
+          keyboardShouldPersistTaps="handled">
           {/* Content */}
           <View className="flex-1 px-6 pb-6">
             {/* Title */}
@@ -114,7 +111,7 @@ export default function SignUp() {
                 leftIcon="person-outline"
                 autoCapitalize="words"
                 textContentType="name"
-                className='text-[14px]'
+                className="text-[14px]"
               />
 
               <Input
@@ -136,7 +133,7 @@ export default function SignUp() {
                 onChangeText={(value) => updateField('password', value)}
                 error={errors.password}
                 leftIcon="lock-closed-outline"
-                rightIcon={showPassword ? "eye-outline" : "eye-off-outline"}
+                rightIcon={showPassword ? 'eye-outline' : 'eye-off-outline'}
                 onRightIconPress={() => setShowPassword(!showPassword)}
                 secureTextEntry={!showPassword}
                 textContentType="newPassword"
@@ -149,7 +146,7 @@ export default function SignUp() {
                 onChangeText={(value) => updateField('confirmPassword', value)}
                 error={errors.confirmPassword}
                 leftIcon="lock-closed-outline"
-                rightIcon={showConfirmPassword ? "eye-outline" : "eye-off-outline"}
+                rightIcon={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'}
                 onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 secureTextEntry={!showConfirmPassword}
                 textContentType="newPassword"
@@ -160,28 +157,25 @@ export default function SignUp() {
             <View className="mt-6">
               <Text className="text-center font-sf-pro-semibold text-sm text-gray-500">
                 By creating an account, you agree to our{' '}
-                <Text className="text-gray-900 underline">Terms of Service</Text>{' '}
-                and{' '}
+                <Text className="text-gray-900 underline">Terms of Service</Text> and{' '}
                 <Text className="text-gray-900 underline">Privacy Policy</Text>
               </Text>
             </View>
 
             {/* Sign Up Button */}
-            <View className="absolute bottom-0 gap-y-2 right-0 left-0 mx-[24px]">
+            <View className="absolute bottom-0 left-0 right-0 mx-[24px] gap-y-2">
               <Button
                 title="Create Account"
                 onPress={handleSignUp}
                 loading={isLoading}
-                className='rounded-full font-body'
-                
+                className="rounded-full font-body"
               />
-               <TouchableOpacity onPress={() => router.push('/(auth)/signin')}>
-                <Text className="font-sf-pro-medium text-center text-[14px] text-gray-900">
-                 Already a stacks user?, Sign In
+              <TouchableOpacity onPress={() => router.push('/(auth)/signin')}>
+                <Text className="text-center font-sf-pro-medium text-[14px] text-gray-900">
+                  Already a stacks user?, Sign In
                 </Text>
               </TouchableOpacity>
             </View>
-
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -22,10 +22,10 @@ export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false);
 
   const updateField = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -65,23 +65,19 @@ export default function SignIn() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="white" />
-      
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-      >
+        className="flex-1">
         <ScrollView
           className="flex-1"
           contentContainerStyle={{ flexGrow: 1 }}
-          keyboardShouldPersistTaps="handled"
-        >
+          keyboardShouldPersistTaps="handled">
           {/* Content */}
           <View className="flex-1 px-6 pb-6">
             {/* Title */}
             <View className="mb-8 mt-4">
-              <Text className="font-heading text-[35px] text-gray-900">
-                Welcome Back
-              </Text>
+              <Text className="font-heading text-[35px] text-gray-900">Welcome Back</Text>
               <Text className="mt-2 font-heading-light text-base text-gray-600">
                 Sign in to continue your investment journey
               </Text>
@@ -108,7 +104,7 @@ export default function SignIn() {
                 onChangeText={(value) => updateField('password', value)}
                 error={errors.password}
                 leftIcon="lock-closed-outline"
-                rightIcon={showPassword ? "eye-outline" : "eye-off-outline"}
+                rightIcon={showPassword ? 'eye-outline' : 'eye-off-outline'}
                 onRightIconPress={() => setShowPassword(!showPassword)}
                 secureTextEntry={!showPassword}
                 textContentType="password"
@@ -118,28 +114,27 @@ export default function SignIn() {
             {/* Forgot Password */}
             <View className="mt-4">
               <TouchableOpacity className="self-end">
-                <Text className="font-body font-bold text-[14px] text-gray-600"> 
+                <Text className="font-body text-[14px] font-bold text-gray-600">
                   Forgot Password?
                 </Text>
               </TouchableOpacity>
             </View>
 
             {/* Sign In Button */}
-             <View className="absolute bottom-0 right-0 left-0 mx-[24px]">
+            <View className="absolute bottom-0 left-0 right-0 mx-[24px]">
               <Button
                 title="Sign in"
                 onPress={handleSignIn}
                 loading={isLoading}
-                className='rounded-full'
+                className="rounded-full"
               />
 
-                <TouchableOpacity onPress={() => router.push('/(auth)')} className="mt-4 self-center">
-                <Text className="font-sf-pro-medium text-center text-[14px] text-gray-900">
-                 New to Stacks? Sign up
+              <TouchableOpacity onPress={() => router.push('/(auth)')} className="mt-4 self-center">
+                <Text className="text-center font-sf-pro-medium text-[14px] text-gray-900">
+                  New to Stacks? Sign up
                 </Text>
               </TouchableOpacity>
             </View>
-           
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -15,7 +15,7 @@ module.exports = {
         'mdnichrome-bold': ['MDNichromeTest-BoldOblique'],
         'mdnichrome-black': ['MDNichromeTest-BlackOblique'],
         'mdnichrome-ultra': ['MDNichromeTest-UltraOblique'],
-        
+
         // SF Pro Rounded font variants
         'sf-pro-ultralight': ['SF-Pro-Rounded-Ultralight'],
         'sf-pro-thin': ['SF-Pro-Rounded-Thin'],
@@ -26,14 +26,14 @@ module.exports = {
         'sf-pro-bold': ['SF-Pro-Rounded-Bold'],
         'sf-pro-heavy': ['SF-Pro-Rounded-Heavy'],
         'sf-pro-black': ['SF-Pro-Rounded-Black'],
-        
+
         // Semantic font aliases
-        'heading': ['SF-Pro-Rounded-Bold'],
+        heading: ['SF-Pro-Rounded-Bold'],
         'heading-light': ['SF-Pro-Rounded-Semibold'],
-        'body': ['SF-Pro-Rounded-Regular'],
+        body: ['SF-Pro-Rounded-Regular'],
         'body-light': ['SF-Pro-Rounded-Light'],
-        'caption': ['SF-Pro-Rounded-Medium'],
-        'display': ['MDNichromeTest-BoldOblique'],
+        caption: ['SF-Pro-Rounded-Medium'],
+        display: ['MDNichromeTest-BoldOblique'],
         'display-artistic': ['MDNichromeTest-UltraOblique'],
       },
     },

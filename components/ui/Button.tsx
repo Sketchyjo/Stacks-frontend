@@ -77,21 +77,13 @@ export const Button: React.FC<ButtonProps> = ({
       className={`w-full flex-row items-center justify-center rounded-2xl ${getVariantStyles()} ${getSizeStyles()} ${
         disabled ? 'opacity-50' : ''
       } ${className}`}
-      {...props}
-    >
+      {...props}>
       {loading ? (
-        <ActivityIndicator
-          color={variant === 'primary' ? '#fff' : '#111'}
-          size="small"
-        />
+        <ActivityIndicator color={variant === 'primary' ? '#fff' : '#111'} size="small" />
       ) : (
         <View className="flex-row items-center">
           {leftIcon && <View className="mr-2">{leftIcon}</View>}
-          <Text
-            className={`font-body-semibold ${getTextSize()} ${getTextStyles()}`}
-          >
-            {title}
-          </Text>
+          <Text className={`font-body-semibold ${getTextSize()} ${getTextStyles()}`}>{title}</Text>
           {rightIcon && <View className="ml-2">{rightIcon}</View>}
         </View>
       )}

@@ -9,20 +9,19 @@ export default function Layout() {
 
   // Show loading screen while fonts are loading
   if (!fontsLoaded && !error) {
-    return null
+    return null;
   }
 
   // Fonts are loaded successfully, render the app
   return (
-    <Stack 
-      screenOptions={{ 
+    <Stack
+      screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: '#ffffff' }
-      }} 
-    >
+        contentStyle: { backgroundColor: '#ffffff' },
+      }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(tabs)"  />
+      <Stack.Screen name="(tabs)" />
     </Stack>
   );
 }

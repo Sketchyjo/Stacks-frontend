@@ -3,14 +3,14 @@ import { useFonts } from './useFonts';
 
 /**
  * Higher-order component for font loading
- * 
+ *
  * This HOC wraps components to ensure fonts are loaded before rendering.
  * If fonts fail to load, it shows a warning and continues with system fonts.
- * 
+ *
  * Usage:
  * ```tsx
  * import { withFonts } from '../hooks/withFonts';
- * 
+ *
  * const MyComponent = () => <Text>Hello</Text>;
  * export default withFonts(MyComponent);
  * ```

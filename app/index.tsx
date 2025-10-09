@@ -10,7 +10,7 @@ import {
   StatusBar,
   ViewStyle,
 } from 'react-native';
-import { cards, onBoard1, onBoard2, onBoard3 } from '../assets/images';
+import { cards, onBoard1, onBoard2, onBoard3, onBoard4 } from '../assets/images';
 
 const { width, height } = Dimensions.get('window');
 
@@ -32,12 +32,12 @@ interface OnboardingSlide {
 }
 
 interface ViewableItemsChanged {
-  viewableItems: Array<{
+  viewableItems: {
     index: number;
     item: OnboardingSlide;
     key: string;
     isViewable: boolean;
-  }>;
+  }[];
 }
 
 // --- Onboarding Data ---
@@ -45,16 +45,15 @@ interface ViewableItemsChanged {
 const onboardingSlides: OnboardingSlide[] = [
   {
     key: '1',
-    title: 'Banks\nAre Mid',
+    title: 'Finance built\n for the internet generation.',
     description:
       'We’re flipping the script—no suits, no gatekeeping, just DeFi speed and TradFi clout. Your money, your rules.',
     image: onBoard1,
-    backgroundColor: '#1E1A3E',
-    textColor: 'text-[#949FFF]',
+    backgroundColor: '#949FFF',
+    textColor: 'text-[#1E1A3E]',
     indicatorBg: 'bg-white/30',
     indicatorActiveBg: 'bg-white',
-    textSmall: 'text-[#D7D6FF]',
-    imageStyle: { width: width, height: height * 0.7 },
+    imageStyle: { width: width, height: height * 0.65 },
   },
   {
     key: '2',
@@ -85,12 +84,12 @@ const onboardingSlides: OnboardingSlide[] = [
     title: 'Swipe\nStack & Repeat',
     description:
       'Cop a card that rounds up every latte and yeets the spare change straight into your portfolio. Cash-back? More like bag-back.',
-    image: cards,
+    image: onBoard4,
     backgroundColor: '#f39abe',
     textColor: 'text-[#fb088f]',
     indicatorBg: 'bg-slate-400/50',
     indicatorActiveBg: 'bg-slate-800',
-    imageStyle: { width: width, height: height * 0.6 }, // Different size for cards image
+    imageStyle: { width: width * 1.05, height: height * 0.7 }, // Different size for cards image
   },
 ];
 
@@ -126,14 +125,14 @@ export default function App() {
   // --- Renders each slide item ---
   const renderItem = ({ item }: { item: OnboardingSlide }) => (
     <View
-      className="flex-1 items-center"
+      className="h-full w-full flex-1  items-center overflow-hidden"
       style={{ width: width, backgroundColor: item.backgroundColor }}>
-      <View className="w-full flex-1 items-start px-4 pt-32 ">
-        <Text className={`font-mdnichrome-bold text-[50px] tracking-wides w-full uppercase ${item.textColor}`}>
+      <View className="w-full flex-1 items-start px-4 pt-24 ">
+        <Text
+          className={`tracking-wides w-full font-display-artistic text-[50px] uppercase ${item.textColor}`}>
           {item.title}
         </Text>
-        <Text
-          className={`mt-4 max-w-xs font-body-light text-base font-bold ${item.textSmall ?? ''} opacity-80`}>
+        <Text className={`mt-4 max-w-xs font-caption text-base font-bold  opacity-80`}>
           {item.description}
         </Text>
       </View>
@@ -141,7 +140,7 @@ export default function App() {
       <Image
         source={item.image}
         style={item.imageStyle}
-        className="absolute bottom-0"
+        className="absolute -bottom-0 "
         resizeMode="cover"
         onError={(e) => console.log('Image failed to load', e.nativeEvent.error)}
       />
@@ -203,13 +202,14 @@ export default function App() {
       <View className="absolute bottom-10 w-full items-center px-6">
         <TouchableOpacity
           className="w-full rounded-full bg-slate-900 p-4"
-          onPress={() => router.push('/(tabs)')}
-        >
+          onPress={() => router.push('/(tabs)')}>
           <Text className="text-center text-lg font-bold text-white">Continue with apple</Text>
         </TouchableOpacity>
-       <TouchableOpacity  onPress={() => router.push('/(auth)')}>
-         <Text className='mt-4 text-center text-[14px] font-body text-white'>Continue with email</Text>
-       </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/(auth)')}>
+          <Text className="mt-4 text-center font-body text-[14px] text-white">
+            Continue with email
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
