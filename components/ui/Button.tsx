@@ -32,9 +32,9 @@ export const Button: React.FC<ButtonProps> = ({
       case 'secondary':
         return 'bg-gray-100 border border-gray-200';
       case 'outline':
-        return 'bg-transparent border border-gray-300';
+        return 'bg-transparent border-2 border-gray-300';
       default:
-        return 'bg-gray-900 border border-gray-900';
+        return 'bg-gray-900 border-2 border-gray-900';
     }
   };
 
@@ -52,11 +52,11 @@ export const Button: React.FC<ButtonProps> = ({
   const getSizeStyles = () => {
     switch (size) {
       case 'sm':
-        return 'px-4 py-2';
-      case 'md':
         return 'px-6 py-3';
-      default:
+      case 'md':
         return 'px-6 py-4';
+      default:
+        return 'px-6 py-5';
     }
   };
 

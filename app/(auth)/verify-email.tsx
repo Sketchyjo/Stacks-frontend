@@ -44,7 +44,7 @@ export default function VerifyEmail() {
             setIsInvalid(false);
             setError('');
 
-            router.replace('/(tabs)');
+            router.replace('/(auth)/onboarding/trust-device');
           } else {
             // Error state
             setIsInvalid(true);

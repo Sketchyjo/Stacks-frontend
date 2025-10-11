@@ -10,13 +10,13 @@
       "output": "static",
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router"],
+    "plugins": ["expo-router", "expo-splash-screen"],
     "experiments": {
-      "typedRoutes": true,
+      "typedRoutes": false,
       "tsconfigPaths": true
     },
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icon/ios-light.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -26,10 +26,16 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
+      "buildNumber": "1.0.0",
       "bundleIdentifier": "com.stacksmobile.Stacks",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+        "icon": {
+                "dark": "./assets/icon/ios-dark.png",
+                "light": "./assets/icon/ios-light.png",
+                "tinted": "./assets/icon/ios-tinted.png"
+       }
     },
     "android": {
       "adaptiveIcon": {

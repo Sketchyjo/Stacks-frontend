@@ -11,7 +11,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Input, Button } from '../../components/ui';
+import {  Button } from '../../components/ui';
+import { InputField } from '@/components';
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -69,11 +70,8 @@ export default function SignUp() {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      // Navigate to email verification screen
-      router.push({
-        pathname: '/(auth)/verify-email',
-        params: { email: formData.email },
-      });
+      // Navigate to phone verification screen after signup
+      router.push('/(auth)/phone-verification');
     }, 2000);
   };
 
@@ -102,52 +100,60 @@ export default function SignUp() {
 
             {/* Form */}
             <View className="gap-y-4">
-              <Input
+              <InputField
+                required
                 label="Full Name"
                 placeholder="Enter your full name"
                 value={formData.fullName}
                 onChangeText={(value) => updateField('fullName', value)}
                 error={errors.fullName}
-                leftIcon="person-outline"
+                // leftIcon="person-outline"
                 autoCapitalize="words"
                 textContentType="name"
                 className="text-[14px]"
               />
 
-              <Input
+              <InputField
+                required
+                type="email"
                 label="Email Address"
                 placeholder="Enter your email"
                 value={formData.email}
                 onChangeText={(value) => updateField('email', value)}
                 error={errors.email}
-                leftIcon="mail-outline"
+                // leftIcon="mail-outline"
                 keyboardType="email-address"
                 autoCapitalize="none"
                 textContentType="emailAddress"
+                className="text-[14px]"
               />
 
-              <Input
+              <InputField
+                required
+                type="password"
                 label="Password"
                 placeholder="Create a strong password"
                 value={formData.password}
                 onChangeText={(value) => updateField('password', value)}
                 error={errors.password}
-                leftIcon="lock-closed-outline"
-                rightIcon={showPassword ? 'eye-outline' : 'eye-off-outline'}
-                onRightIconPress={() => setShowPassword(!showPassword)}
+                // leftIcon="lock-closed-outline"
+                // rightIcon={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                // onRightIconPress={() => setShowPassword(!showPassword)}
                 secureTextEntry={!showPassword}
                 textContentType="newPassword"
               />
 
-              <Input
+              <InputField
+                required
+                type="password"
                 label="Confirm Password"
                 placeholder="Confirm your password"
                 value={formData.confirmPassword}
                 onChangeText={(value) => updateField('confirmPassword', value)}
                 error={errors.confirmPassword}
-                leftIcon="lock-closed-outline"
-                rightIcon={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'}
-                onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                // leftIcon="lock-closed-outline" 
+                // rightIcon={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'}
+                // onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 secureTextEntry={!showConfirmPassword}
                 textContentType="newPassword"
               />
