@@ -16,11 +16,10 @@ const App  = () => {
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: '#ffffff' },
       }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="(auth)" />
-      <Stack.Screen name="onboarding" />
+      <Stack.Screen name="onboard-flow" />
       <Stack.Screen name="(tabs)" />
     </Stack>
   );
@@ -74,22 +73,26 @@ export default function Layout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: '#ffffff' },
+          contentStyle: { backgroundColor: '#fefefe' },
         }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="(tabs)" />
+       <Stack.Screen name="index" />
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="onboard-flow" />
+      <Stack.Screen name="(tabs)" />
       </Stack>
     );
   }
 
   // Fonts are loaded successfully, render the app
   return (
-   <>
-    <App />
-    <TouchableOpacity onPress={() => router.push("/onboarding/enable-faceid")} className='bg-green-400 p-4 rounded-full absolute bottom-16 left-16'>
-      <Text className='text-white'>Test</Text>  
-    </TouchableOpacity>
-   </>
+      <Stack
+      screenOptions={{
+        headerShown: false,
+      }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="onboard-flow" />
+      <Stack.Screen name="(tabs)" />
+    </Stack>
   );
 }

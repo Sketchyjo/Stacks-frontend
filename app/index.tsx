@@ -205,7 +205,7 @@ export default function App() {
           onPress={() => router.push('/(tabs)')}>
           <Text className="text-center text-lg font-bold text-white">Continue with apple</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push('/(auth)')}>
+        <TouchableOpacity onPress={() => router.push('/onboard-flow')}>
           <Text className="mt-4 text-center font-body text-[14px] text-white">
             Continue with email
           </Text>

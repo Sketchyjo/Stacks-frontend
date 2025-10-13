@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
-import { colors, typography, spacing } from '../../design/tokens';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Icon } from '../atoms';
+import { SafeAreaView } from 'moti';
 
 export interface HeaderProps {
   title: string;
@@ -23,17 +23,16 @@ export const Header: React.FC<HeaderProps> = ({
   onLeftPress,
   onRightPress,
   showBackButton = false,
-  backgroundColor = colors.background.main,
+  backgroundColor = 'bg-white',
   className,
 }) => {
   return (
-    <SafeAreaView style={{ backgroundColor }}>
+    <SafeAreaView className={backgroundColor}>
       <View
         className={`
           flex-row items-center justify-between px-4 py-3
-          ${className || ''}
+          ${backgroundColor} ${className || ''}
         `}
-        style={{ backgroundColor }}
       >
         {/* Left Section */}
         <View className="flex-row items-center flex-1">
@@ -50,7 +49,7 @@ export const Header: React.FC<HeaderProps> = ({
                     library="ionicons"
                     name="arrow-back"
                     size={24}
-                    color={colors.text.primary}
+                    className="text-black"
                   />
                 ))}
             </TouchableOpacity>
@@ -59,23 +58,14 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Title and Subtitle */}
           <View className="flex-1">
             <Text
-              className="text-[#000000] text-lg font-bold"
-              style={{
-                fontFamily: typography.fonts.primary,
-                fontSize: typography.styles.h3.size,
-                fontWeight: typography.weights.bold,
-              }}
+              className="text-black text-[24px] font-bold font-sf-pro-bold"
               numberOfLines={1}
             >
               {title}
             </Text>
             {subtitle && (
               <Text
-                className="text-[#A0A0A0] text-sm"
-                style={{
-                  fontFamily: typography.fonts.secondary,
-                  fontSize: typography.styles.label.size,
-                }}
+                className="text-gray-400 text-sm font-secondary"
                 numberOfLines={1}
               >
                 {subtitle}
