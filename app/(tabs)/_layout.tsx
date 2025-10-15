@@ -2,9 +2,12 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { CreditCard, Home, User, DollarSign } from 'lucide-react-native';
 
+import { GlassTabBar } from '@/components/navigation/GlassTabBar';
+
 export default function _layout() {
   return (
     <Tabs
+      // tabBar={(props) => <GlassTabBar {...props} />}
       screenOptions={{
         headerShown: false,
         //  tabBarStyle: { display: 'none' }, // Hide the default tab bar

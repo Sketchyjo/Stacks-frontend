@@ -47,6 +47,8 @@ export { PerformanceIndicator } from './molecules/PerformanceIndicator';
 export { BasketCard } from './molecules/BasketCard';
 export type { BasketCardProps } from './molecules/BasketCard';
 export { BasketFeedCard } from './molecules/BasketFeedCard';
+export { CategoryCard } from './molecules/CategoryCard';
+export type { CategoryCardProps } from './molecules/CategoryCard';
 export { AITipCard } from './molecules/AITipCard';
 export { FilterChips } from './molecules/FilterChips';
 export type {

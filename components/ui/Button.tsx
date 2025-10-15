@@ -74,7 +74,7 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <TouchableOpacity
       disabled={disabled || loading}
-      className={`w-full flex-row items-center justify-center rounded-2xl ${getVariantStyles()} ${getSizeStyles()} ${
+      className={`w-full flex-row items-center justify-center rounded-full ${getVariantStyles()} ${getSizeStyles()} ${
         disabled ? 'opacity-50' : ''
       } ${className}`}
       {...props}>

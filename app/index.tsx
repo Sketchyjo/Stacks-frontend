@@ -11,6 +11,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { cards, onBoard1, onBoard2, onBoard3, onBoard4 } from '../assets/images';
+import { Button } from '@/components/ui';
 
 const { width, height } = Dimensions.get('window');
 
@@ -53,7 +54,7 @@ const onboardingSlides: OnboardingSlide[] = [
     textColor: 'text-[#1E1A3E]',
     indicatorBg: 'bg-white/30',
     indicatorActiveBg: 'bg-white',
-    imageStyle: { width: width, height: height * 0.65 },
+    imageStyle: { width: width, height: height * 0.7 },
   },
   {
     key: '2',
@@ -129,7 +130,7 @@ export default function App() {
       style={{ width: width, backgroundColor: item.backgroundColor }}>
       <View className="w-full flex-1 items-start px-4 pt-24 ">
         <Text
-          className={`tracking-wides w-full font-display-artistic font-black text-[34px] uppercase ${item.textColor}`}>
+          className={`tracking-wides w-full font-display font-black text-[30px] uppercase ${item.textColor}`}>
           {item.title}
         </Text>
         <Text className={`mt-4 max-w-xs font-caption text-base font-bold  opacity-80`}>
@@ -199,15 +200,11 @@ export default function App() {
       {renderIndicators()}
 
       {/* --- "Get Started" Button --- */}
-      <View className="absolute bottom-10 w-full items-center px-6">
-        <TouchableOpacity
-          className="w-full rounded-full bg-slate-900 p-4"
-          onPress={() => router.push('/(tabs)')}>
-          <Text className="text-center text-lg font-bold text-white">Continue with apple</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push('/onboard-flow')}>
-          <Text className="mt-4 text-center font-body text-[14px] text-white">
-            Continue with email
+      <View className="absolute bottom-10 w-full gap-y-2 items-center px-6">
+        <Button title="Create an account" variant="primary" onPress={() => router.push('/(auth)')} />
+        <TouchableOpacity onPress={() => router.push('/(auth)/signin')}>
+          <Text className="text-center font-sf-pro-medium text-[14px] text-border-primary">
+            Already have an account?, Sign In
           </Text>
         </TouchableOpacity>
       </View>

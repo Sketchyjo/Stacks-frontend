@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, ViewProps, Text } from 'react-native';
-import { Ionicons } from './SafeIonicons';
+import * as Lucide from 'lucide-react-native';
 import { colors } from '../../design/tokens';
 
-export type IconLibrary = 'ionicons' | 'material' | 'fontawesome' | 'antdesign' | 'entypo' | 'feather';
+export type IconLibrary = 'lucide';
 
 export interface IconProps extends Omit<ViewProps, 'children'> {
   name: string;
@@ -12,63 +12,51 @@ export interface IconProps extends Omit<ViewProps, 'children'> {
   color?: string;
   className?: string;
   testID?: string;
+  strokeWidth?: number;
+  fill?: string;
 }
 
-// Safe import for other icon libraries
-let MaterialIcons: any, FontAwesome: any, AntDesign: any, Entypo: any, Feather: any;
+const FallbackIcon = ({ size = 24, color = '#000', style, ...props }: any) => {
+  return React.createElement(Text, {
+    style: [
+      {
+        fontSize: size,
+        color,
+        fontFamily: 'System',
+      },
+      style,
+    ],
+    ...props,
+  }, '●');
+};
 
-try {
-  const vectorIcons = require('@expo/vector-icons');
-  MaterialIcons = vectorIcons.MaterialIcons;
-  FontAwesome = vectorIcons.FontAwesome;
-  AntDesign = vectorIcons.AntDesign;
-  Entypo = vectorIcons.Entypo;
-  Feather = vectorIcons.Feather;
-} catch (error) {
-  console.warn('Failed to load vector icons, using fallbacks:', error);
-  
-  // Fallback component for all icon libraries
-  const FallbackIcon = ({ name, size = 24, color = '#000', style, ...props }: any) => {
-    return React.createElement(Text, {
-      style: [
-        {
-          fontSize: size,
-          color,
-          fontFamily: 'System',
-        },
-        style,
-      ],
-      ...props,
-    }, '●');
-  };
-  
-  MaterialIcons = FallbackIcon;
-  FontAwesome = FallbackIcon;
-  AntDesign = FallbackIcon;
-  Entypo = FallbackIcon;
-  Feather = FallbackIcon;
+function kebabToPascal(input: string) {
+  return input
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+    .join('');
 }
 
-const IconComponents = {
-  ionicons: Ionicons,
-  material: MaterialIcons,
-  fontawesome: FontAwesome,
-  antdesign: AntDesign,
-  entypo: Entypo,
-  feather: Feather,
-} as const;
+function resolveLucideComponent(name: string) {
+  const pascalName = kebabToPascal(name);
+  const component = (Lucide as any)[pascalName];
+  return component || (Lucide as any).Circle || FallbackIcon;
+}
 
 export const Icon: React.FC<IconProps> = ({
   name,
-  library = 'ionicons',
+  library = 'lucide',
   size = 24,
   color = colors.text.primary,
   className,
   testID,
   style,
+  strokeWidth = 0.8,
+  fill = 'none',
   ...props
 }) => {
-  const IconComponent = IconComponents[library];
+  const LucideIcon = resolveLucideComponent(name);
 
   return (
     <View 
@@ -77,10 +65,11 @@ export const Icon: React.FC<IconProps> = ({
       testID={testID}
       {...props}
     >
-      <IconComponent 
-        name={name as any}
+      <LucideIcon 
         size={size}
         color={color}
+        strokeWidth={strokeWidth}
+        fill={fill}
       />
     </View>
   );

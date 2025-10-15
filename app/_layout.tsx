@@ -7,7 +7,7 @@ import '../global.css';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 // Keep the native splash screen visible while we fetch resources
-SplashScreen.preventAutoHideAsync();
+// SplashScreen.preventAutoHideAsync();
 SplashScreen.hideAsync();
 
 
@@ -19,7 +19,6 @@ const App  = () => {
       }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="(auth)" />
-      <Stack.Screen name="onboard-flow" />
       <Stack.Screen name="(tabs)" />
     </Stack>
   );
@@ -73,11 +72,9 @@ export default function Layout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: '#fefefe' },
         }}>
        <Stack.Screen name="index" />
       <Stack.Screen name="(auth)" />
-      <Stack.Screen name="onboard-flow" />
       <Stack.Screen name="(tabs)" />
       </Stack>
     );
@@ -85,14 +82,8 @@ export default function Layout() {
 
   // Fonts are loaded successfully, render the app
   return (
-      <Stack
-      screenOptions={{
-        headerShown: false,
-      }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="onboard-flow" />
-      <Stack.Screen name="(tabs)" />
-    </Stack>
+    <View className='flex-1 bg-white'>
+      <App />
+    </View>
   );
 }
