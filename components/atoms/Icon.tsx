@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, ViewProps, Text } from 'react-native';
 import * as Lucide from 'lucide-react-native';
+import { Ionicons, Feather, MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import { colors } from '../../design/tokens';
 
-export type IconLibrary = 'lucide';
+export type IconLibrary = 'lucide' | 'ionicons' | 'feather' | 'material' | 'fontawesome';
 
 export interface IconProps extends Omit<ViewProps, 'children'> {
   name: string;
@@ -57,6 +58,14 @@ export const Icon: React.FC<IconProps> = ({
   ...props
 }) => {
   const LucideIcon = resolveLucideComponent(name);
+  const vectorLibraries = {
+    ionicons: Ionicons,
+    feather: Feather,
+    material: MaterialIcons,
+    fontawesome: FontAwesome,
+  } as const;
+
+  const VectorIcon = library !== 'lucide' ? vectorLibraries[library] : null;
 
   return (
     <View 
@@ -65,12 +74,18 @@ export const Icon: React.FC<IconProps> = ({
       testID={testID}
       {...props}
     >
-      <LucideIcon 
-        size={size}
-        color={color}
-        strokeWidth={strokeWidth}
-        fill={fill}
-      />
+      {library === 'lucide' ? (
+        <LucideIcon 
+          size={size}
+          color={color}
+          strokeWidth={strokeWidth}
+          fill={fill}
+        />
+      ) : VectorIcon ? (
+        <VectorIcon name={name as any} size={size} color={color} />
+      ) : (
+        <FallbackIcon size={size} color={color} />
+      )}
     </View>
   );
 };

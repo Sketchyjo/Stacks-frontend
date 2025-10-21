@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, FlatList, ViewProps } from 'react-native';
 import { TransactionItem, Transaction } from './TransactionItem';
-import { colors, typography, spacing } from '@/design/tokens';
+import { colors } from '@/design/tokens';
 import { Icon } from '@/components/atoms';
 
 export interface TransactionListProps extends Omit<ViewProps, 'children'> {
@@ -27,23 +27,9 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   );
 
   const renderEmptyState = () => (
-    <View
-      style={{
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: spacing.xxl,
-      }}
-    >
+    <View className="items-center justify-center p-8">
       <Icon name="file-tray-outline" size={48} color={colors.text.tertiary} />
-      <Text
-        style={{
-          fontFamily: typography.fonts.primary,
-          fontSize: 16,
-          color: colors.text.secondary,
-          marginTop: spacing.md,
-          textAlign: 'center',
-        }}
-      >
+      <Text className="font-body text-base text-gray-500 mt-4 text-center">
         {emptyStateMessage}
       </Text>
     </View>
@@ -51,27 +37,24 @@ export const TransactionList: React.FC<TransactionListProps> = ({
 
   return (
     <View style={style} {...props}>
-      {title && (
-        <Text
-          style={{
-            fontFamily: typography.fonts.primary,
-            fontSize: 22,
-            fontWeight: typography.weights.bold,
-            color: colors.text.primary,
-            marginBottom: spacing.md,
-          }}
-        >
+    <View className="flex-row items-center justify-between">
+    {title && (
+        <Text className="font-body-bold text-[24px] text-gray-900 mb-4">
           {title}
         </Text>
       )}
+      <Text className="font-body-medium text-[20px] text-gray-500">
+          see all
+        </Text>
+    </View>
       <FlatList
         data={transactions}
         renderItem={renderItem}
         keyExtractor={item => item.id}
         ListEmptyComponent={renderEmptyState}
-        scrollEnabled={false} // Assuming the list is inside a ScrollView
-        ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />} // Use spacing instead of a visible line
-        contentContainerStyle={{ paddingVertical: spacing.sm }}
+        scrollEnabled={false}
+        ItemSeparatorComponent={() => <View className="h-3" />}
+        contentContainerStyle={{ paddingVertical: 12 }}
       />
     </View>
   );

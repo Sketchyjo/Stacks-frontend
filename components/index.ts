@@ -30,6 +30,7 @@ export { SearchBar } from './molecules/SearchBar';
 export { FormField } from './molecules/FormField';
 export { ListItem } from './molecules/ListItem';
 export { Header } from './molecules/Header';
+export { AmountInput } from './molecules/AmountInput';
 export { TransactionItem } from './molecules/TransactionItem';
 export { TransactionList } from './molecules/TransactionList';
 export { VirtualCreditCard } from './molecules/VirtualCardDisplay';

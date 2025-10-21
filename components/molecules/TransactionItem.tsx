@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   TouchableOpacityProps,
 } from 'react-native';
-import { colors, spacing, typography } from '@/design/tokens';
+import { colors, typography } from '@/design/tokens';
 import { Icon } from '../atoms';
 
 // --- Type Definitions ---
@@ -120,48 +120,32 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
 
   return (
     <TouchableOpacity
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: spacing.sm,
-      }}
+      className="flex-row items-center py-3 border-b border-[#E5E7EB]"
       accessibilityLabel={`Transaction: ${transaction.title}, Amount: ${formattedAmount}`}
       {...props}
     >
       {/* Icon */}
       <View
+        className="w-11 h-11 rounded-full justify-center items-center mr-4"
         style={{
-          width: 44,
-          height: 44,
-          borderRadius: 22,
           backgroundColor: `${colors.semantic.success}1A`,
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginRight: spacing.md,
         }}
       >
         <Icon library="feather" name={iconName} size={22} color={iconColor} />
       </View>
 
       {/* Details */}
-      <View style={{ flex: 1, justifyContent: 'center' }}>
+      <View className="flex-1 justify-center">
         <Text
-          style={{
-            fontFamily: typography.fonts.primary,
-            fontSize: 16,
-            fontWeight: typography.weights.medium,
-            color: colors.text.primary,
-          }}
+          className="font-body-bold text-[17px] text-gray-900"
           numberOfLines={1}
         >
           {transaction.title}
         </Text>
         <Text
+          className="font-body text-[14px] text-gray-500 mt-[2px]"
           style={{
             fontFamily: typography.fonts.secondary,
-            fontSize: 14,
-            color: colors.text.secondary,
-            marginTop: 2,
           }}
           numberOfLines={1}
         >
@@ -171,13 +155,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
 
       {/* Amount */}
       <Text
-        style={{
-          fontFamily: typography.fonts.primary,
-          fontSize: 16,
-          fontWeight: typography.weights.medium,
-          color: amountColor,
-          marginLeft: spacing.sm,
-        }}
+        className="font-body-bold text-[17px] ml-3"
       >
         {formattedAmount}
       </Text>

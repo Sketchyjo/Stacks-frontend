@@ -1,11 +1,11 @@
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import React, { useLayoutEffect } from 'react';
-import { useNavigation } from 'expo-router';
+import { View, Text, ScrollView } from 'react-native';
+import React, { useLayoutEffect, useMemo } from 'react';
+import { router, useNavigation } from 'expo-router';
 import { BalanceCard } from '@/components/molecules/BalanceCard';
 import { BasketItemCard } from '@/components/molecules/BasketItemCard';
-import { BasketCard } from '@/components/molecules/BasketCard';
-import { Avatar } from '@rneui/themed';
-import { Bell, Grid3X3Icon } from 'lucide-react-native';
+import { Bell, Grid3X3Icon, User } from 'lucide-react-native';
+import { TransactionList } from '@/components/molecules/TransactionList';
+import type { Transaction } from '@/components/molecules/TransactionItem';
 
 const Dashboard = () => {
   const navigation = useNavigation();
@@ -16,15 +16,13 @@ const Dashboard = () => {
       headerLeft: () => (
         <View className='flex-row items-center gap-x-3 pl-[14px]'>
           <Grid3X3Icon size={28} strokeWidth={0.8} fill={"#000"} color={"#fff"}  />
-          {/* <View>
-          <Text className='text-[14px] font-body-medium'>morning</Text>
-          <Text className='text-[#000] text-[20px] font-body-bold font-bold '>OLUWATOBILOBA</Text>
-          </View> */}
+      
         </View>
       ),
       headerRight: () => (
         <View className='flex-row gap-x-[12px] items-center pr-[14px]'>
          <Bell size={24} strokeWidth={2} color={"#000"} />
+         <User size={24} strokeWidth={2} color={"#000"}  />
         </View>
       ),
       title: "",
@@ -34,15 +32,51 @@ const Dashboard = () => {
     })
   }, [navigation]);
 
-  // Mock data for the portfolio balance
-  const mockChartData = [
-    { x: 0, y: 10 },
-    { x: 1, y: 15 },
-    { x: 2, y: 12 },
-    { x: 3, y: 18 },
-    { x: 4, y: 15 },
-    { x: 5, y: 22 },
-  ];
+  const transactions = useMemo<Transaction[]>(
+    () => [
+      {
+        id: 'txn-1',
+        title: 'Spotify Subscription',
+        category: 'Subscriptions',
+        amount: 9.99,
+        currency: 'USD',
+        type: 'DEBIT',
+        status: 'COMPLETED',
+        createdAt: new Date('2024-06-12T09:24:00Z'),
+      },
+      {
+        id: 'txn-2',
+        title: 'Salary Payment',
+        category: 'Income',
+        amount: 2450,
+        currency: 'USD',
+        type: 'CREDIT',
+        status: 'COMPLETED',
+        createdAt: new Date('2024-06-10T06:00:00Z'),
+      },
+      {
+        id: 'txn-3',
+        title: 'USDC • BTC Swap',
+        category: 'Crypto',
+        amount: 520,
+        currency: 'USD',
+        type: 'SWAP',
+        status: 'PENDING',
+        createdAt: new Date('2024-06-08T14:10:00Z'),
+      },
+      {
+        id: 'txn-4',
+        title: 'Starbucks Brooklyn',
+        category: 'Food & Drinks',
+        amount: 6.75,
+        currency: 'USD',
+        type: 'DEBIT',
+        status: 'COMPLETED',
+        createdAt: new Date('2024-06-03T11:32:00Z'),
+      },
+    ],
+    []
+  );
 
   return (
     <ScrollView className="flex-1">
@@ -50,10 +84,11 @@ const Dashboard = () => {
         {/* Portfolio Balance Card */}
         <View className="mb-6">
           <BalanceCard
-            balance="$86,480.93"
-            percentChange="23.94%"
+            balance="$00.00"
+            percentChange="00.00%"
             timeframe="Last 30d"
             className="rounded-x"
+            onReceivePress={() => router.push('/deposit')}
           />
           
          
@@ -61,7 +96,7 @@ const Dashboard = () => {
 
         {/* My Baskets Section */}
         <View className="mb-6">
-          <Text className="text-[18px] font-body-medium mb-3">My baskets</Text>
+          <Text className="text-[24px] font-body-bold mb-3">My baskets</Text>
           
           <View className="flex-row mb-4">
             <BasketItemCard
@@ -92,62 +127,13 @@ const Dashboard = () => {
           </View>
         </View>
 
-        {/* Baskets to Watch Section */}
-        <View>
-          <Text className="text-[18px] font-body-medium mb-1">Baskets to watch</Text>
-          <Text className="text-[14px] font-body-light text-gray-500 mb-3">Similar to those on your watchlist</Text>
-          
-          <View className="gap-y-3">
-            <BasketCard
-              id="dpi-4"
-              name="DPI-4"
-              description="Diversified Protocol Index"
-              riskLevel="MEDIUM"
-              performanceIndicator={{
-                returnPercentage: 15.3,
-                totalInvested: 102.44 * 1e6,
-                currentValue: 102.44 * 1e6 * (1 + 0.153),
-              }}
-              badges={[
-                { color: '#FF9800', icon: 'trending-up' },
-                { color: '#2196F3', icon: 'analytics' },
-              ]}
-              onPress={() => {}}
-            />
-
-            <BasketCard
-              id="sgt-3402"
-              name="SGT-3402"
-              description="Growth strategy basket"
-              riskLevel="LOW"
-              performanceIndicator={{
-                returnPercentage: 23.8,
-                totalInvested: 87.44 * 1e6,
-                currentValue: 87.44 * 1e6 * (1 + 0.238),
-              }}
-              badges={[
-                { color: '#FF9800', icon: 'trending-up' },
-                { color: '#2196F3', icon: 'analytics' },
-              ]}
-              onPress={() => {}}
-            />
-
-            <BasketCard
-              id="sai"
-              name="SAI"
-              iconUrl={require('@/assets/illustration/basket.png')}
-              description="Stability and income"
-              riskLevel="HIGH"
-              performanceIndicator={{
-                returnPercentage: -2.4,
-                totalInvested: 117.34 * 1e6,
-                currentValue: 117.34 * 1e6 * (1 - 0.024),
-              }}
-              badges={[
-                { color: '#FF9800', icon: 'trending-up' },
-                { color: '#2196F3', icon: 'analytics' },
-              ]}
-              onPress={() => {}}
+        {/* Transaction History Section */}
+        <View className="mb-8">
+          <View className="rounded-3xl px- py-5">
+            <TransactionList
+              title="Transaction History"
+              transactions={transactions}
+              emptyStateMessage="No transactions to show yet."
             />
           </View>
         </View>

@@ -90,10 +90,10 @@ export default function SignUp() {
           <View className="flex-1 px-6 pb-6">
             {/* Title */}
             <View className="mb-8 mt-4">
-              <Text className="font-heading text-[32px] text-gray-900">
+              <Text className="font-body-bold text-[40px] text-gray-900">
                 Enter you email address
               </Text>
-              <Text className="mt-2 font-heading-light text-[14px] text-gray-600">
+              <Text className="mt-2 font-body-medium text-[14px] text-gray-600">
                 Join thousands of investors building their wealth
               </Text>
             </View>

@@ -4,6 +4,7 @@ import { View, Text, TouchableOpacity, StatusBar, Platform } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui';
 import { HeaderAction, ProgressDots } from './components';
+import Passkey4Icon from '@/assets/Icons/passkey-4.svg';
 
 const FaceIdIllustration = () => (
   <View className="relative h-28 w-28">
@@ -32,7 +33,7 @@ export default function EnableFaceIdScreen() {
         </View>
 
         <View className="mt-14">
-          <FaceIdIllustration />
+          <Passkey4Icon width={100} height={150} />
           <View className="mt-8">
             <Text className="font-heading text-[32px] text-gray-900">{biometricLabel}</Text>
             <Text className="mt-4 font-body text-base leading-6 text-gray-600">

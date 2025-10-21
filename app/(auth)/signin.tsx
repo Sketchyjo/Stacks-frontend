@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Input, Button } from '../../components/ui';
+import { InputField } from '@/components';
 
 export default function SignIn() {
   const [formData, setFormData] = useState({
@@ -77,35 +78,37 @@ export default function SignIn() {
           <View className="flex-1 px-6 pb-6">
             {/* Title */}
             <View className="mb-8 mt-4">
-              <Text className="font-heading text-[35px] text-gray-900">Welcome Back</Text>
-              <Text className="mt-2 font-heading-light text-base text-gray-600">
+              <Text className="font-body-bold text-[40px] text-gray-900">Welcome Back</Text>
+              <Text className="mt-2 font-body-medium text-base text-gray-600">
                 Sign in to continue your investment journey
               </Text>
             </View>
 
             {/* Form */}
             <View className="gap-y-4">
-              <Input
+              <InputField
+                required
                 label="Email Address"
                 placeholder="Enter your email"
                 value={formData.email}
-                onChangeText={(value) => updateField('email', value)}
+                onChangeText={(value: string) => updateField('email', value)}
                 error={errors.email}
-                leftIcon="mail-outline"
+                // leftIcon="mail-outline"
                 keyboardType="email-address"
                 autoCapitalize="none"
                 textContentType="emailAddress"
               />
 
-              <Input
+              <InputField
+                required
                 label="Password"
                 placeholder="Enter your password"
                 value={formData.password}
-                onChangeText={(value) => updateField('password', value)}
+                onChangeText={(value: string) => updateField('password', value)}
                 error={errors.password}
-                leftIcon="lock-closed-outline"
-                rightIcon={showPassword ? 'eye-outline' : 'eye-off-outline'}
-                onRightIconPress={() => setShowPassword(!showPassword)}
+                // leftIcon="lock-closed-outline"
+                // rightIcon={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                // onRightIconPress={() => setShowPassword(!showPassword)}
                 secureTextEntry={!showPassword}
                 textContentType="password"
               />
@@ -113,7 +116,9 @@ export default function SignIn() {
 
             {/* Forgot Password */}
             <View className="mt-4">
-              <TouchableOpacity className="self-end">
+              <TouchableOpacity
+                onPress={() => router.push('/(auth)/forgot-password')}
+                className="self-end">
                 <Text className="font-body text-[14px] font-bold text-gray-600">
                   Forgot Password?
                 </Text>

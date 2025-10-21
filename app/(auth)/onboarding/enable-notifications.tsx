@@ -4,6 +4,7 @@ import { View, Text, TouchableOpacity, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui';
 import { HeaderAction, ProgressDots, TOTAL_ONBOARDING_STEPS } from './components';
+import Public from '@/assets/Icons/public.svg';
 
 const NotificationIllustration = () => (
   <View className="relative h-28 w-28">
@@ -27,7 +28,7 @@ export default function EnableNotificationsScreen() {
         </View>
 
         <View className="mt-14">
-          <NotificationIllustration />
+         <Public width={100} height={150} />
           <View className="mt-8">
             <Text className="font-heading text-[32px] text-gray-900">Enable Notifications</Text>
             <Text className="mt-4 font-body text-base leading-6 text-gray-600">

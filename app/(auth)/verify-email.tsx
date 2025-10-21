@@ -128,7 +128,7 @@ export default function VerifyEmail() {
       <View className="flex-1 px-6 pb-6">
         {/* Title */}
         <View className="mb-8 mt-8">
-          <Text className="font-heading text-[34px] text-gray-900" accessibilityRole="header">
+          <Text className="font-body-bold text-[34px] text-gray-900" accessibilityRole="header">
             Confirm email
           </Text>
           <View className="mt-4">
