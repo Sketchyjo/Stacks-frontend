@@ -18,6 +18,7 @@ export interface CardData {
 }
 
 export interface VirtualCreditCardProps {
+  id?: string;
   cardTitle?: string;
   cardNumber?: string;
   cardholderName?: string;
@@ -27,6 +28,8 @@ export interface VirtualCreditCardProps {
   balance?: number;
   currency?: string;
   card?: CardData;
+  backgroundColor?: string;
+  textColor?: string;
 }
 
 export const VirtualCreditCard: React.FC<VirtualCreditCardProps> = ({
@@ -39,12 +42,16 @@ export const VirtualCreditCard: React.FC<VirtualCreditCardProps> = ({
   balance = 0,
   currency = 'USD',
   card,
+  backgroundColor,
+  textColor,
 }) => {
   // Use card object values as fallbacks if direct props aren't provided
   const resolvedCardType = cardType || card?.cardType || 'visa';
   const resolvedCardNumber = cardNumber || card?.cardNumber || '';
   const resolvedBalance = balance || card?.balance || 0;
   const resolvedCurrency = currency || card?.currency || 'USD';
+  const resolvedBackgroundColor = backgroundColor || colors.accent.limeGreen;
+  const resolvedTextColor = textColor || colors.text.onAccent;
   const [isFlipped, setIsFlipped] = useState(false);
   const rotationAnim = useRef(new Animated.Value(0)).current;
 
@@ -111,7 +118,7 @@ export const VirtualCreditCard: React.FC<VirtualCreditCardProps> = ({
             padding="medium"
             style={{
               height: '100%',
-              backgroundColor: colors.accent.limeGreen,
+              backgroundColor: resolvedBackgroundColor,
               justifyContent: 'space-between',
             }}
           >
@@ -128,7 +135,7 @@ export const VirtualCreditCard: React.FC<VirtualCreditCardProps> = ({
                     fontFamily: typography.fonts.secondary,
                     fontSize: 18,
                     fontWeight: 'bold',
-                    color: colors.text.onAccent,
+                    color: resolvedTextColor,
                   },
                 ]}
               >
@@ -138,7 +145,7 @@ export const VirtualCreditCard: React.FC<VirtualCreditCardProps> = ({
                 name={resolvedCardType === 'visa' ? 'cc-visa' : 'cc-mastercard'}
                 library="fontawesome"
                 size={28}
-                color={colors.text.onAccent}
+                color={resolvedTextColor}
               />
             </View>
             <View>
@@ -146,7 +153,7 @@ export const VirtualCreditCard: React.FC<VirtualCreditCardProps> = ({
                 style={[
                   {
                     fontSize: typography.styles.body.size,
-                    color: colors.text.onAccent,
+                    color: resolvedTextColor,
                     letterSpacing: 2,
                     marginBottom: spacing.md,
                     fontFamily: 'monospace',
@@ -166,7 +173,7 @@ export const VirtualCreditCard: React.FC<VirtualCreditCardProps> = ({
                     {
                       fontFamily: typography.fonts.primary,
                       fontSize: typography.styles.caption.size,
-                      color: colors.text.onAccent,
+                      color: resolvedTextColor,
                     },
                   ]}
                 >
@@ -192,7 +199,7 @@ export const VirtualCreditCard: React.FC<VirtualCreditCardProps> = ({
                     fontFamily: typography.fonts.secondary,
                     fontSize: 20,
                     fontWeight: 'bold',
-                    color: colors.text.onAccent,
+                    color: resolvedTextColor,
                   },
                 ]}
               >
@@ -217,7 +224,7 @@ export const VirtualCreditCard: React.FC<VirtualCreditCardProps> = ({
             padding="medium"
             style={{
               height: '100%',
-              backgroundColor: colors.accent.limeGreen,
+              backgroundColor: resolvedBackgroundColor,
               justifyContent: 'space-between',
             }}
           >
@@ -253,7 +260,7 @@ export const VirtualCreditCard: React.FC<VirtualCreditCardProps> = ({
               </View>
               <Text
                 style={{
-                  color: "black",
+                  color: resolvedTextColor,
                   fontSize: 12,
                   marginTop: spacing.lg,
                   alignSelf: 'flex-end',
@@ -266,7 +273,7 @@ export const VirtualCreditCard: React.FC<VirtualCreditCardProps> = ({
               name={resolvedCardType === 'visa' ? 'cc-visa' : 'cc-mastercard'}
               library="fontawesome"
               size={28}
-              color="black"
+              color={resolvedTextColor}
               style={{ alignSelf: 'flex-end' }}
             />
           </Card>

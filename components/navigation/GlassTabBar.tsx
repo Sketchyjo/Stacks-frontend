@@ -2,29 +2,75 @@ import React from 'react';
 import { Platform, StyleSheet, View, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomTabBar, type BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Host, Namespace, GlassEffectContainer, HStack, Group, VStack, Text, Image } from '@expo/ui/swift-ui';
 import {
+  GlassEffectContainer,
+  Group,
+  Host,
+  HStack,
+  Image,
+  Namespace,
+  Spacer,
+  ZStack,
+} from '@expo/ui/swift-ui';
+import {
+  Animation,
+  animation,
+  frame,
   glassEffect,
   glassEffectId,
-  padding,
-  shadow,
+  matchedGeometryEffect,
+  onLongPressGesture,
   opacity,
-  frame,
+  padding,
+  scaleEffect,
+  shadow,
 } from '@expo/ui/swift-ui/modifiers';
 import type { SFSymbol } from 'sf-symbols-typescript';
 
-const TAB_CONFIG: Record<
-  string,
-  {
-    icon: SFSymbol;
-    title: string;
-  }
-> = {
-  index: { icon: 'house.fill', title: 'Home' },
-  invest: { icon: 'chart.line.uptrend.xyaxis', title: 'Invest' },
-  card: { icon: 'creditcard.fill', title: 'Card' },
-  profile: { icon: 'person.crop.circle', title: 'Profile' },
+type TabDefinition = {
+  icon: SFSymbol;
+  title: string;
+  indicatorTint: string;
+  indicatorShadow: string;
 };
+
+const TAB_CONFIG: Record<string, TabDefinition> = {
+  index: {
+    icon: 'house.fill',
+    title: 'Home',
+    indicatorTint: 'rgba(16, 206, 134, 0.78)',
+    indicatorShadow: 'rgba(16, 206, 134, 0.45)',
+  },
+  invest: {
+    icon: 'chart.line.uptrend.xyaxis',
+    title: 'Invest',
+    indicatorTint: 'rgba(12, 214, 246, 0.78)',
+    indicatorShadow: 'rgba(12, 214, 246, 0.42)',
+  },
+  card: {
+    icon: 'creditcard.fill',
+    title: 'Card',
+    indicatorTint: 'rgba(255, 194, 46, 0.78)',
+    indicatorShadow: 'rgba(255, 194, 46, 0.48)',
+  },
+  profile: {
+    icon: 'person.crop.circle',
+    title: 'Profile',
+    indicatorTint: 'rgba(255, 149, 79, 0.78)',
+    indicatorShadow: 'rgba(255, 149, 79, 0.42)',
+  },
+};
+
+const highlightAnimation = Animation.interpolatingSpring({
+  mass: 0.72,
+  stiffness: 165,
+  damping: 18,
+});
+
+const iconAnimation = Animation.spring({
+  response: 0.32,
+  dampingFraction: 0.78,
+});
 
 export function GlassTabBar(props: BottomTabBarProps) {
   const { state, descriptors, navigation } = props;
@@ -33,16 +79,15 @@ export function GlassTabBar(props: BottomTabBarProps) {
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
 
-  const shellTint = isDark ? '#0f172a73' : '#ffffff40';
-  const activeTint = isDark ? '#1f293780' : '#ffffff66';
-  const inactiveTint = isDark ? '#0f172a4d' : '#ffffff29';
-  const activeForeground = isDark ? '#f9fafb' : '#111827';
-  const inactiveForeground = isDark ? '#cbd5f5' : '#374151';
-  const focusShadow = shadow({
-    radius: 28,
-    y: 14,
-    color: isDark ? '#00000066' : '#00000033',
+  const shellTint = isDark ? 'rgba(15, 23, 42, 0.55)' : 'rgba(255, 255, 255, 0.7)';
+  const shellShadow = shadow({
+    radius: 42,
+    y: 24,
+    color: isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(15, 23, 42, 0.14)',
   });
+  const iconActive = isDark ? '#f9fafb' : '#111827';
+  const iconInactive = isDark ? 'rgba(226, 232, 240, 0.68)' : 'rgba(55, 65, 81, 0.65)';
+  const activeIndexValue = state.index;
 
   if (Platform.OS !== 'ios') {
     return <BottomTabBar {...props} />;
@@ -53,30 +98,31 @@ export function GlassTabBar(props: BottomTabBarProps) {
       style={[
         styles.container,
         {
-          paddingBottom: Math.max(insets.bottom, 12),
+          paddingBottom: Math.max(insets.bottom, 16),
         },
       ]}>
       <Host style={styles.host} colorScheme={scheme ?? 'light'}>
         <Namespace id={namespaceId}>
-          <GlassEffectContainer spacing={18}>
+          <GlassEffectContainer spacing={24}>
             <HStack
-              spacing={10}
+              spacing={18}
               alignment="center"
               modifiers={[
                 glassEffect({
                   glass: {
                     variant: 'regular',
                     tint: shellTint,
+                    interactive: true,
                   },
                   shape: 'capsule',
                 }),
                 glassEffectId('tabbar-shell', namespaceId),
-                padding({ horizontal: 18, vertical: 12 }),
+                padding({ horizontal: 22, vertical: 14 }),
                 frame({ maxWidth: 640 }),
-                focusShadow,
+                shellShadow,
               ]}>
               {state.routes.map((route, index) => {
-                const isFocused = state.index === index;
+                const isFocused = activeIndexValue === index;
                 const options = descriptors[route.key]?.options ?? {};
                 const config = TAB_CONFIG[route.name] ?? {
                   icon: 'square.fill' as SFSymbol,
@@ -84,12 +130,9 @@ export function GlassTabBar(props: BottomTabBarProps) {
                     typeof options.tabBarLabel === 'string'
                       ? options.tabBarLabel
                       : options.title ?? route.name,
+                  indicatorTint: 'rgba(148, 163, 184, 0.6)',
+                  indicatorShadow: 'rgba(148, 163, 184, 0.35)',
                 };
-
-                const label =
-                  typeof options.tabBarLabel === 'string'
-                    ? options.tabBarLabel
-                    : options.title ?? config.title;
 
                 const onPress = () => {
                   const event = navigation.emit({
@@ -103,37 +146,74 @@ export function GlassTabBar(props: BottomTabBarProps) {
                   }
                 };
 
+                const onLongPress = () => {
+                  navigation.emit({
+                    type: 'tabLongPress',
+                    target: route.key,
+                  });
+                };
+
+                const tabTestID =
+                  options.tabBarButtonTestID ??
+                  (typeof (options as { tabBarTestID?: string }).tabBarTestID === 'string'
+                    ? (options as { tabBarTestID?: string }).tabBarTestID
+                    : undefined);
+
                 return (
                   <Group
                     key={route.key}
                     onPress={onPress}
-                    testID={options.tabBarTestID}
+                    testID={tabTestID}
                     modifiers={[
                       glassEffect({
                         glass: {
-                          variant: isFocused ? 'regular' : 'clear',
-                          tint: isFocused ? activeTint : inactiveTint,
+                          variant: 'clear',
                           interactive: true,
                         },
                         shape: 'capsule',
                       }),
                       glassEffectId(route.key, namespaceId),
-                      padding({ horizontal: 16, vertical: 10 }),
-                      isFocused ? focusShadow : opacity(0.92),
+                      padding({ horizontal: 12, vertical: 10 }),
+                      opacity(isFocused ? 1 : 0.96),
+                      animation(iconAnimation, isFocused),
+                      onLongPressGesture(onLongPress, 0.45),
                     ]}>
-                    <VStack spacing={4} alignment="center">
+                    <ZStack alignment="center">
+                      {isFocused ? (
+                        <Group
+                          modifiers={[
+                            matchedGeometryEffect('tabbar-indicator', namespaceId),
+                            glassEffect({
+                              glass: {
+                                variant: 'regular',
+                                tint: config.indicatorTint,
+                                interactive: true,
+                              },
+                              shape: 'capsule',
+                            }),
+                            glassEffectId('tabbar-indicator', namespaceId),
+                            padding({ horizontal: 32, vertical: 18 }),
+                            shadow({
+                              radius: 36,
+                              y: 18,
+                              color: config.indicatorShadow,
+                            }),
+                            animation(highlightAnimation, activeIndexValue),
+                          ]}>
+                          <Spacer minLength={0} />
+                        </Group>
+                      ) : null}
+
                       <Image
                         systemName={config.icon}
-                        size={20}
-                        color={isFocused ? activeForeground : inactiveForeground}
+                        size={22}
+                        color={isFocused ? iconActive : iconInactive}
+                        modifiers={[
+                          scaleEffect(isFocused ? 1 : 0.9),
+                          animation(iconAnimation, isFocused),
+                        ]}
                       />
-                      <Text
-                        size={12}
-                        weight={isFocused ? 'semibold' : 'regular'}
-                        color={isFocused ? activeForeground : inactiveForeground}>
-                        {label}
-                      </Text>
-                    </VStack>
+                    </ZStack>
                   </Group>
                 );
               })}

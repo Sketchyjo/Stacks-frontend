@@ -1,13 +1,14 @@
 import { View, Text, ScrollView } from 'react-native';
 import React, { useLayoutEffect } from 'react';
 import { useNavigation } from 'expo-router';
-import { Bell } from 'lucide-react-native';
 import { Avatar } from '@rneui/base';
 import { CategoryCard } from '@/components/molecules/CategoryCard';
 import { avatar, cards, checkmark } from '@/assets/images';
+import FinanceIcon from '@/assets/Icons/finance-26.svg';
+import DataExplorationIcon from '@/assets/Icons/data-exploration-20.svg';
 
 const Invest = () => {
-    const navigation = useNavigation();
+  const navigation = useNavigation();
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -19,12 +20,12 @@ const Invest = () => {
       ),
       headerRight: () => (
         <View className='flex-row gap-x-[12px] items-center pr-[14px]'>
-         <Avatar 
-          size={40}
-          rounded
-          title="Fc"
-          containerStyle={{ backgroundColor: '#3d4db7' }}
-           />
+          <Avatar
+            size={40}
+            rounded
+            title="Fc"
+            containerStyle={{ backgroundColor: '#3d4db7' }}
+          />
         </View>
       ),
       title: "",
@@ -40,37 +41,38 @@ const Invest = () => {
       title: 'DeFi',
       basketsCount: 86,
       performancePercent: 62.15,
+      icon: FinanceIcon,
+      iconGradient: ['#F5F5FF', '#D6E4FF'] as const,
     },
-  ]
+    {
+      id: 'gaming',
+      title: 'Gaming',
+      basketsCount: 19,
+      performancePercent: 1.24,
+      icon: DataExplorationIcon,
+      iconGradient: ['#FFF5F7', '#E4E8FF'] as const,
+    },
+  ];
   return (
     <ScrollView className="flex-1">
       <View className="px-[14px] py-4 mt-[24px]">
         <Text className="text-[24px] font-body-medium mb-3">Categories</Text>
 
         <View className="flex-row gap-x-3">
-          <View className="flex-1">
-            <CategoryCard
-              id="defi"
-              title="DeFi"
-              basketsCount={86}
-              performancePercent={62.15}
-              iconName="coins"
-              tokenLogos={[avatar, cards, checkmark]}
-              onPress={() => {}}
-            />
-          </View>
-
-          <View className="flex-1">
-            <CategoryCard
-              id="gaming"
-              title="Gaming"
-              basketsCount={19}
-              performancePercent={-1.24}
-              iconName="gamepad-2"
-              tokenLogos={[avatar, cards, checkmark]}
-              onPress={() => {}}
-            />
-          </View>
+          {categories.map(({ id: categoryId, title, basketsCount, performancePercent, icon, iconGradient }) => (
+            <View className="flex-1" key={categoryId}>
+              <CategoryCard
+                id={categoryId}
+                title={title}
+                basketsCount={basketsCount}
+                performancePercent={performancePercent}
+                icon={icon}
+                iconGradient={iconGradient}
+                tokenLogos={[avatar, cards, checkmark]}
+                onPress={() => {}}
+              />
+            </View>
+          ))}
         </View>
       </View>
     </ScrollView>
