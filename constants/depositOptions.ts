@@ -1,9 +1,6 @@
 import type { ComponentType } from 'react';
 import type { SvgProps } from 'react-native-svg';
 
-import BaseLogo from '@/assets/svg/base.svg';
-import BnbLogo from '@/assets/svg/bnb.svg';
-import MaticLogo from '@/assets/svg/matic.svg';
 import SolanaLogo from '@/assets/svg/solana.svg';
 import Usdc from '@/assets/svg/usdc.svg';
 import Usdt from '@/assets/svg/usdt.svg';
@@ -39,110 +36,52 @@ export type StablecoinOption = {
   networks: DepositNetwork[];
 };
 
-type NetworkDefinition = Omit<DepositNetwork, 'highlights'>;
-
-const NETWORK_DEFINITIONS: Record<
-  'solana' | 'base' | 'bnb' | 'polygon',
-  NetworkDefinition
-> = {
-  solana: {
-    id: 'solana',
-    name: 'Solana',
-    subtitle: 'Solana Network',
-    ticker: 'SOL',
-    chainColor: '#0E0E5C',
-    textColor: '#F8FAFC',
-    address: 'SOLANA_DEPOSIT_ADDRESS_PLACEHOLDER',
-    icon: SolanaLogo,
-  },
-  base: {
-    id: 'base',
-    name: 'Base',
-    subtitle: 'Base Mainnet',
-    ticker: 'BASE',
-    chainColor: '#2563EB',
-    textColor: '#F1F5F9',
-    address: '0x3A9F45F785fC881a8DBe4eb90D7f8135296C6F75',
-    icon: BaseLogo,
-  },
-  bnb: {
-    id: 'bnb',
-    name: 'BNB',
-    subtitle: 'BNB Chain (BEP20)',
-    ticker: 'BNB',
-    chainColor: '#FBBF24',
-    address: '0x73D8927ED988B4B5F0c5Ab6dE9Ea72348F3F17A2',
-    icon: BnbLogo,
-  },
-  polygon: {
-    id: 'polygon',
-    name: 'Polygon',
-    subtitle: 'Polygon PoS',
-    ticker: 'POL',
-    chainColor: '#8B5CF6',
-    textColor: '#F8FAFC',
-    address: '0x4D19f761d9D0c4C7d3c0C1fd3B64954424d36CF1',
-    icon: MaticLogo,
-  },
+// Solana network definition (only supported network)
+const SOLANA_NETWORK: DepositNetwork = {
+  id: 'solana',
+  name: 'Solana',
+  subtitle: 'Solana Devnet',
+  ticker: 'SOL',
+  chainColor: '#0E0E5C',
+  textColor: '#F8FAFC',
+  address: 'SOLANA_DEPOSIT_ADDRESS_PLACEHOLDER',
+  icon: SolanaLogo,
 };
-
-const buildNetwork = (
-  id: keyof typeof NETWORK_DEFINITIONS,
-  overrides: Partial<DepositNetwork> = {}
-): DepositNetwork => ({
-  ...NETWORK_DEFINITIONS[id],
-  ...overrides,
-});
 
 export const STABLECOIN_OPTIONS: StablecoinOption[] = [
   {
     id: 'usdc',
     symbol: 'USDC',
     name: 'USD Coin',
-    description: 'Deposit USD Coin',
+    description: 'Deposit USD Coin on Solana',
     backgroundColor: '#1C4ED8',
     textColor: '#F1F5F9',
     icon: Usdc,
     networks: [
-      buildNetwork('solana'),
-      buildNetwork('base'),
-      buildNetwork('bnb', {
+      {
+        ...SOLANA_NETWORK,
         highlights: [
           {
             id: 'earn',
-            message:
-              'For each USDC you deposit, you receive 1 digital dollar to invest with.',
+            message: 'For each USDC you deposit, you receive 1 digital dollar to invest with.',
           },
           {
-            id: 'native',
-            message: 'This address only accepts native USDC on the BNB network.',
-          },
-          {
-            id: 'usdce',
-            tone: 'warning',
-            message: 'Deposits in USDCe are not supported and may not be recoverable.',
+            id: 'solana',
+            message: 'This address only accepts USDC on the Solana network.',
           },
         ],
-      }),
-      buildNetwork('polygon'),
+      },
     ],
   },
   {
     id: 'usdt',
     symbol: 'USDT',
     name: 'Tether USD',
-    description: 'Deposit Tether USD',
+    description: 'Deposit Tether USD on Solana',
     backgroundColor: '#047857',
     textColor: '#ECFDF5',
     icon: Usdt,
-    networks: [
-      buildNetwork('solana'),
-      buildNetwork('base'),
-      buildNetwork('bnb', {
-        address: '0x91B0C0421c163Dc6fD13bd966578AE3431C3C4dd',
-      }),
-      buildNetwork('polygon'),
-    ],
+    networks: [SOLANA_NETWORK],
   },
 ];
 

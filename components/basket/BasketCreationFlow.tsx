@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, Modal, ScrollView, TouchableOpacity, Pressable } from 'react-native';
 import { X } from 'lucide-react-native';
 import { BasketInfoStep } from './steps/BasketInfoStep';
-import { AssetSelectionStep } from './steps/AssetSelectionStep';
+import { AssetSelectionStep, Asset } from './steps/AssetSelectionStep';
+import { AssetDetailsStep } from './steps/AssetDetailsStep';
 import { AllocationStep } from './steps/AllocationStep';
 import { InvestmentAmountStep } from './steps/InvestmentAmountStep';
 
@@ -35,7 +36,7 @@ interface BasketCreationFlowProps {
   }) => void;
 }
 
-type FlowStep = 'info' | 'selection' | 'allocation' | 'amount';
+type FlowStep = 'info' | 'selection' | 'assetDetails' | 'allocation' | 'amount';
 
 export const BasketCreationFlow: React.FC<BasketCreationFlowProps> = ({
   visible,
@@ -50,17 +51,51 @@ export const BasketCreationFlow: React.FC<BasketCreationFlowProps> = ({
     lockPeriod: '1m',
   });
   const [selectedAssets, setSelectedAssets] = useState<SelectedAsset[]>([]);
+  const [currentAsset, setCurrentAsset] = useState<Asset | null>(null);
   const [investmentAmount, setInvestmentAmount] = useState('0');
 
   const stepProgress = useMemo(() => {
     const steps: FlowStep[] = ['info', 'selection', 'allocation', 'amount'];
-    const currentIndex = steps.indexOf(currentStep);
+    let currentIndex = steps.indexOf(currentStep);
+    // Don't count assetDetails in progress as it's a sub-step
+    if (currentStep === 'assetDetails') {
+      currentIndex = steps.indexOf('selection');
+    }
     return ((currentIndex + 1) / steps.length) * 100;
   }, [currentStep]);
 
   const handleNextFromInfo = (info: BasketInfo) => {
     setBasketInfo(info);
     setCurrentStep('selection');
+  };
+
+  const handleAssetPress = (asset: Asset) => {
+    setCurrentAsset(asset);
+    setCurrentStep('assetDetails');
+  };
+
+  const handleSelectAsset = (asset: Asset) => {
+    // Add the selected asset to the list if not already present
+    const isAlreadySelected = selectedAssets.some(a => a.id === asset.id);
+    if (!isAlreadySelected) {
+      const newAsset: SelectedAsset = {
+        id: asset.id,
+        symbol: asset.symbol,
+        name: asset.name,
+        type: asset.type,
+        allocation: 0,
+        currentPrice: asset.price,
+      };
+      setSelectedAssets([...selectedAssets, newAsset]);
+    }
+    // Go back to selection screen
+    setCurrentStep('selection');
+    setCurrentAsset(null);
+  };
+
+  const handleBackFromAssetDetails = () => {
+    setCurrentStep('selection');
+    setCurrentAsset(null);
   };
 
   const handleNextFromSelection = (assets: SelectedAsset[]) => {
@@ -85,7 +120,10 @@ export const BasketCreationFlow: React.FC<BasketCreationFlowProps> = ({
   const handleBack = () => {
     const stepOrder: FlowStep[] = ['info', 'selection', 'allocation', 'amount'];
     const currentIndex = stepOrder.indexOf(currentStep);
-    if (currentIndex > 0) {
+    if (currentStep === 'assetDetails') {
+      setCurrentStep('selection');
+      setCurrentAsset(null);
+    } else if (currentIndex > 0) {
       setCurrentStep(stepOrder[currentIndex - 1]);
     }
   };
@@ -94,6 +132,7 @@ export const BasketCreationFlow: React.FC<BasketCreationFlowProps> = ({
     setCurrentStep('info');
     setBasketInfo({ name: '', ticker: '', description: '', lockPeriod: '1m' });
     setSelectedAssets([]);
+    setCurrentAsset(null);
     setInvestmentAmount('0');
     onClose();
   };
@@ -104,6 +143,8 @@ export const BasketCreationFlow: React.FC<BasketCreationFlowProps> = ({
         return 'Create Basket';
       case 'selection':
         return 'Select Assets';
+      case 'assetDetails':
+        return 'Asset Details';
       case 'allocation':
         return 'Allocate Percentages';
       case 'amount':
@@ -111,6 +152,16 @@ export const BasketCreationFlow: React.FC<BasketCreationFlowProps> = ({
       default:
         return '';
     }
+  };
+
+  const getStepNumber = () => {
+    const steps: FlowStep[] = ['info', 'selection', 'allocation', 'amount'];
+    let currentIndex = steps.indexOf(currentStep);
+    // Don't count assetDetails in step number as it's a sub-step
+    if (currentStep === 'assetDetails') {
+      currentIndex = steps.indexOf('selection');
+    }
+    return currentIndex + 1;
   };
 
   return (
@@ -129,7 +180,7 @@ export const BasketCreationFlow: React.FC<BasketCreationFlowProps> = ({
                 {getStepTitle()}
               </Text>
               <Text className="mt-1 text-[14px] font-body-medium text-gray-500">
-                Step {['info', 'selection', 'allocation', 'amount'].indexOf(currentStep) + 1} of 4
+                Step {getStepNumber()} of 4
               </Text>
             </View>
             <TouchableOpacity
@@ -165,6 +216,15 @@ export const BasketCreationFlow: React.FC<BasketCreationFlowProps> = ({
               initialAssets={selectedAssets}
               onNext={handleNextFromSelection}
               onBack={handleBack}
+              onAssetPress={handleAssetPress}
+            />
+          )}
+
+          {currentStep === 'assetDetails' && currentAsset && (
+            <AssetDetailsStep
+              asset={currentAsset}
+              onSelect={handleSelectAsset}
+              onBack={handleBackFromAssetDetails}
             />
           )}
 

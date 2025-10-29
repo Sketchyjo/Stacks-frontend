@@ -36,7 +36,7 @@ export const buildRouteConfig = (segments: string[], pathname: string): RouteCon
   inAuthGroup: segments[0] === '(auth)',
   inTabsGroup: segments[0] === '(tabs)',
   isOnWelcomeScreen: pathname === '/',
-  isOnLoginPasscode: pathname === '/(auth)/login-passcode',
+  isOnLoginPasscode: pathname === '/login-passcode',
   isOnVerifyEmail: pathname === '/(auth)/verify-email',
   isOnCreatePasscode: pathname === '/(auth)/create-passcode',
   isOnConfirmPasscode: pathname === '/(auth)/confirm-passcode',
@@ -56,14 +56,28 @@ export const isInCriticalAuthFlow = (config: RouteConfig): boolean => {
 
 /**
  * Handles routing for authenticated users
+ * Requires passcode session validation for app access after backgrounding/inactivity
  */
 const handleAuthenticatedUser = (
   authState: AuthState,
-  config: RouteConfig
+  config: RouteConfig,
+  hasValidPasscodeSession: boolean
 ): string | null => {
   const { user, onboardingStatus } = authState;
   
   if (isInCriticalAuthFlow(config)) return null;
+  
+  // If passcode session is invalid/expired, route to login-passcode
+  if (!hasValidPasscodeSession && !config.isOnLoginPasscode) {
+    console.log('[RouteHelpers] Passcode session expired, redirecting to login-passcode');
+    return '/login-passcode';
+  }
+  
+  // If user has valid session and is trying to access auth screens, redirect to main app
+  if (hasValidPasscodeSession && config.inAuthGroup) {
+    console.log('[RouteHelpers] Authenticated user trying to access auth screens, redirecting to main app');
+    return '/(tabs)';
+  }
   
   const userOnboardingStatus = user?.onboardingStatus || onboardingStatus;
   if (userOnboardingStatus === 'completed' && config.inTabsGroup) return null;
@@ -75,23 +89,32 @@ const handleAuthenticatedUser = (
 
 /**
  * Handles routing for users with stored credentials but no active session
+ * Routes to login-passcode if user data exists (passcode session expired)
+ * Routes to signin if no user data exists (full session token expired after 7 days)
  */
 const handleStoredCredentials = (
   authState: AuthState,
-  config: RouteConfig
+  config: RouteConfig,
+  hasSessionExpired: boolean
 ): string | null => {
   const { user } = authState;
   
-  if (config.inAuthGroup) return null;
-  
-  const userHasPasscode = user?.hasPasscode;
-  
-  if (userHasPasscode && !config.isOnLoginPasscode) {
-    return '/(auth)/login-passcode';
+  // If full 7-day session has expired (no tokens, user data cleared by SessionManager)
+  // Route to signin for full re-authentication
+  if (hasSessionExpired && !user) {
+    console.log('[RouteHelpers] Session token expired (7 days), redirecting to signin');
+    if (config.inAuthGroup && !config.isOnWelcomeScreen) return null;
+    return '/(auth)/signin';
   }
   
-  if (!userHasPasscode && !config.isOnWelcomeScreen) {
-    return '/(auth)/signin';
+  // If already on login-passcode screen, stay there
+  if (config.isOnLoginPasscode) return null;
+  
+  // If user data still exists but not authenticated (passcode session expired)
+  // Route to login-passcode for quick re-auth
+  if (user) {
+    console.log('[RouteHelpers] Passcode session expired, redirecting to login-passcode');
+    return '/login-passcode';
   }
   
   return null;
@@ -134,22 +157,29 @@ const handleGuestUser = (
 export const determineRoute = (
   authState: AuthState,
   config: RouteConfig,
-  hasSeenWelcome: boolean
+  hasSeenWelcome: boolean,
+  hasValidPasscodeSession: boolean = true
 ): string | null => {
-  const { user, isAuthenticated, accessToken, pendingVerificationEmail } = authState;
+  const { user, isAuthenticated, accessToken, refreshToken, pendingVerificationEmail } = authState;
   
+  // User is fully authenticated with valid session
   if (isAuthenticated && user && accessToken) {
-    return handleAuthenticatedUser(authState, config);
+    return handleAuthenticatedUser(authState, config, hasValidPasscodeSession);
   }
   
+  // User data exists but not authenticated - could be passcode session expired OR full session expired
   if (!isAuthenticated && user) {
-    return handleStoredCredentials(authState, config);
+    // If no refresh token, the 7-day session has fully expired
+    const hasSessionExpired = !refreshToken;
+    return handleStoredCredentials(authState, config, hasSessionExpired);
   }
   
+  // No user data, but pending email verification
   if (!isAuthenticated && !user && pendingVerificationEmail) {
     return handleEmailVerification(config);
   }
   
+  // Guest user - no authentication at all
   if (!isAuthenticated && !user) {
     return handleGuestUser(hasSeenWelcome, config);
   }

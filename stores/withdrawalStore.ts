@@ -109,19 +109,19 @@ export interface WithdrawalActions {
   reset: () => void;
 }
 
-// Mock data
+// Mock data - Solana only
 const MOCK_RECIPIENTS: Recipient[] = [
   {
     id: '1',
-    name: 'Dvn.eth',
-    type: 'ens',
-    address: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
+    name: 'Solana Wallet 1',
+    type: 'address',
+    address: '8gVkP2aGZxK4u3Hj9JkMPVz7eQQaQ2W5FnE4cTdR3xYq',
   },
   {
     id: '2',
-    name: 'Alice.eth',
-    type: 'ens',
-    address: '0x8c7e4f8a5d6b3c2e1f9a8b7c6d5e4f3a2b1c0d9e',
+    name: 'Solana Wallet 2',
+    type: 'address',
+    address: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
   },
 ];
 
@@ -133,7 +133,7 @@ const MOCK_TOKENS: Token[] = [
     balance: 199.9,
     usdValue: 199.9,
     priceChange: -0.01,
-    network: 'USDC (SOL)',
+    network: 'Solana',
     icon: 'usdc',
   },
   {
@@ -143,15 +143,13 @@ const MOCK_TOKENS: Token[] = [
     balance: 500,
     usdValue: 500,
     priceChange: 0.02,
-    network: 'USDT (ETH)',
+    network: 'Solana',
     icon: 'usdt',
   },
 ];
 
 const MOCK_NETWORKS: Network[] = [
   { id: 'solana', name: 'Solana', symbol: 'SOL', icon: 'solana' },
-  { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', icon: 'ethereum' },
-  { id: 'polygon', name: 'Polygon', symbol: 'MATIC', icon: 'matic' },
 ];
 
 const initialState: WithdrawalState = {
@@ -166,8 +164,8 @@ const initialState: WithdrawalState = {
   availableRecipients: MOCK_RECIPIENTS,
   availableTokens: MOCK_TOKENS,
   availableNetworks: MOCK_NETWORKS,
-  accountName: 'Account 1',
-  accountAddress: '0X45679...',
+  accountName: 'Solana Account',
+  accountAddress: '8gVkP2aGZxK4u3Hj9JkMPVz7eQQaQ2W5FnE4cTdR3xYq',
 };
 
 export const useWithdrawalStore = create<WithdrawalState & WithdrawalActions>((set, get) => ({
@@ -248,24 +246,21 @@ export const useWithdrawalStore = create<WithdrawalState & WithdrawalActions>((s
     
     if (!recipientAddress || !selectedToken || !amount) return;
     
-    // Check if it's an ENS name
-    const isENS = recipientAddress.toLowerCase().endsWith('.eth');
-    
     const numAmount = parseFloat(amount);
     const usdAmount = (numAmount * 1).toFixed(2); // Assuming 1:1 for USDC
     
     const transaction: TransactionDetails = {
       fromAccount: accountName,
       fromAddress: accountAddress,
-      recipientName: isENS ? recipientAddress : recipientAddress.slice(0, 6) + '...' + recipientAddress.slice(-4),
-      recipientAddress: isENS ? 'ENS ID' : recipientAddress,
+      recipientName: recipientAddress.slice(0, 6) + '...' + recipientAddress.slice(-4),
+      recipientAddress: recipientAddress,
       token: selectedToken,
       amount: `${numAmount.toFixed(2)} ${selectedToken.symbol}`,
       usdAmount: `$${usdAmount}`,
       fromNetwork: { id: 'solana', name: 'Solana', symbol: 'SOL', icon: 'solana' },
-      toNetwork: { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', icon: 'ethereum' },
-      fee: '0.00001 USDC',
-      bridgeProvider: { id: 'bungee', name: 'Bungee', estimatedTime: '2-5 minutes' },
+      toNetwork: { id: 'solana', name: 'Solana', symbol: 'SOL', icon: 'solana' },
+      fee: '0.00001 SOL',
+      bridgeProvider: { id: 'solana', name: 'Solana Network', estimatedTime: '1-2 seconds' },
     };
     
     set({ transaction });
@@ -286,15 +281,15 @@ export const useWithdrawalStore = create<WithdrawalState & WithdrawalActions>((s
       // Call real API to create transfer
       const response = await walletService.createTransfer({
         toAddress: recipientAddress,
-        token: selectedToken.symbol,
+        tokenId: selectedToken.symbol,
         amount,
-        chain: selectedToken.network, // Use network from selected token
+        network: selectedToken.network, // Use network from selected token
       });
       
       // Update transaction with real data from API
       const transaction = get().transaction;
       if (transaction) {
-        transaction.timestamp = new Date(response.transaction.createdAt).toLocaleString('en-GB', {
+        transaction.timestamp = new Date(response.transaction.timestamp).toLocaleString('en-GB', {
           day: 'numeric',
           month: 'short',
           year: 'numeric',
@@ -347,16 +342,15 @@ export const useWithdrawalStore = create<WithdrawalState & WithdrawalActions>((s
     const { recipientAddress } = get();
     
     if (!recipientAddress.trim()) {
-      set({ errors: { address: 'Please enter a wallet address' } });
+      set({ errors: { address: 'Please enter a Solana wallet address' } });
       return false;
     }
     
-    // Basic validation for ENS or Ethereum address
-    const isENS = recipientAddress.toLowerCase().endsWith('.eth');
-    const isValidEthAddress = /^0x[a-fA-F0-9]{40}$/.test(recipientAddress);
+    // Basic validation for Solana address (base58, 32-44 characters)
+    const isValidSolanaAddress = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipientAddress);
     
-    if (!isENS && !isValidEthAddress) {
-      set({ errors: { address: 'Invalid wallet address or ENS name' } });
+    if (!isValidSolanaAddress) {
+      set({ errors: { address: 'Invalid Solana wallet address' } });
       return false;
     }
     

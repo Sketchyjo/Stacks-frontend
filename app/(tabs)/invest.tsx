@@ -240,6 +240,63 @@ const Invest = () => {
         </ScrollView>
       </View>
 
+
+      <View className="px-[14px] py-4 mt-[14px]">
+      <Text className="text-[24px] font-body-bold mb-3">Top 10 basket in Tech</Text>
+      <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingRight: 24 }}
+        >
+          {categories.map(({ id: categoryId, title, basketsCount, performancePercent, icon, iconGradient }, index) => (
+            <View
+              key={categoryId}
+              className="w-[220px]"
+              style={{ marginRight: index === categories.length - 1 ? 0 : 16 }}
+            >
+              <CategoryCard
+                id={categoryId}
+                title={title}
+                basketsCount={basketsCount}
+                performancePercent={performancePercent}
+                icon={icon}
+                iconGradient={iconGradient}
+                tokenLogos={[avatar, cards, checkmark]}
+                onPress={() => {}}
+              />
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+
+      <View className="px-[14px] py-4 mt-[14px]">
+      <Text className="text-[24px] font-body-bold mb-3">Top investors to watch</Text>
+      <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingRight: 24 }}
+        >
+          {categories.map(({ id: categoryId, title, basketsCount, performancePercent, icon, iconGradient }, index) => (
+            <View
+              key={categoryId}
+              className="w-[220px]"
+              style={{ marginRight: index === categories.length - 1 ? 0 : 16 }}
+            >
+              <CategoryCard
+                id={categoryId}
+                title={title}
+                basketsCount={basketsCount}
+                performancePercent={performancePercent}
+                icon={icon}
+                iconGradient={iconGradient}
+                tokenLogos={[avatar, cards, checkmark]}
+                onPress={() => {}}
+              />
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+
     </KeyboardAwareScrollView>
   );
 };

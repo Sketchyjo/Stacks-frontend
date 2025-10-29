@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, Modal, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { X, Check } from 'lucide-react-native';
+import { X, Check, ArrowLeft } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
 import type { BasketInfo } from '../BasketCreationFlow';
+import { InputField } from '@/components';
+import { router } from 'expo-router';
 
 const MATURITY_OPTIONS = [
   { value: '3m', label: '3 months', months: 3 },
@@ -68,54 +70,36 @@ export const BasketInfoStep: React.FC<BasketInfoStepProps> = ({
 
   return (
     <View className="flex-1">
+        <View className="flex-row items-center pl-[14px] gap-x-2">
+        <ArrowLeft size={24} onPress={() => router.back()} />
+        <Text className='text-[24px] font-body-semibold'>Enter basket details</Text>
+       </View>
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Basket Name */}
-        <View className="mb-6">
-          <Text className="mb-2 text-[14px] font-body-semibold text-[#070914]">
-            Basket Name
-          </Text>
-          <TextInput
+      <InputField
+            label='Basket Name'
             value={name}
             onChangeText={setName}
             placeholder="e.g., Tech Growth Portfolio"
             placeholderTextColor="#9CA3AF"
-            className="rounded-2xl border border-gray-200 bg-[#F9FAFB] px-4 py-4 text-[16px] font-body-medium text-[#070914]"
             maxLength={50}
           />
-          <Text className="mt-1 text-[12px] font-body-medium text-gray-400">
-            {name.length}/50 characters
-          </Text>
-        </View>
 
-        {/* Basket Ticker */}
-        <View className="mb-6">
-          <Text className="mb-2 text-[14px] font-body-semibold text-[#070914]">
-            Ticker Symbol
-          </Text>
-          <TextInput
+        <InputField
+          label='Ticker Symbol'
             value={ticker}
             onChangeText={(text) => setTicker(text.toUpperCase())}
             placeholder="e.g., TECH-01"
             placeholderTextColor="#9CA3AF"
-            className="rounded-2xl border border-gray-200 bg-[#F9FAFB] px-4 py-4 text-[16px] font-body-bold text-[#070914]"
             maxLength={10}
             autoCapitalize="characters"
           />
-          <Text className="mt-1 text-[12px] font-body-medium text-gray-400">
-            Unique identifier for your basket
-          </Text>
-        </View>
 
-        {/* Description */}
-        <View className="mb-6">
-          <Text className="mb-2 text-[14px] font-body-semibold text-[#070914]">
-            Description
-          </Text>
-          <TextInput
+         <InputField
+            label='Description'
             value={description}
             onChangeText={setDescription}
             placeholder="Describe your investment strategy..."
@@ -123,13 +107,8 @@ export const BasketInfoStep: React.FC<BasketInfoStepProps> = ({
             multiline
             numberOfLines={4}
             textAlignVertical="top"
-            className="rounded-2xl border border-gray-200 bg-[#F9FAFB] px-4 py-4 text-[16px] font-body-medium text-[#070914]"
             maxLength={200}
           />
-          <Text className="mt-1 text-[12px] font-body-medium text-gray-400">
-            {description.length}/200 characters
-          </Text>
-        </View>
 
         {/* Maturity Date */}
         <View className="mb-8">

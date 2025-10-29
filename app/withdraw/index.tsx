@@ -42,9 +42,8 @@ export default function SendTokenScreen() {
 
   const handleReview = () => {
     const isAmountValid = validateAmount();
-    const isAddressValid = validateAddress();
     
-    if (!isAmountValid || !isAddressValid) {
+    if (!isAmountValid) {
       return;
     }
     

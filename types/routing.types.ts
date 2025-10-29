@@ -16,6 +16,7 @@ export interface AuthState {
   user: any;
   isAuthenticated: boolean;
   accessToken: string | null;
+  refreshToken: string | null;
   onboardingStatus: string | null;
   pendingVerificationEmail: string | null;
 }

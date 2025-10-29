@@ -4,7 +4,6 @@
  */
 
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosRequestConfig } from 'axios';
-import { useAuthStore } from '../stores/authStore';
 import type { ApiError, ApiResponse } from './types';
 
 /**
@@ -38,16 +37,36 @@ const apiClient = axios.create(API_CONFIG) as ApiClient;
 /**
  * Request interceptor
  * - Adds authentication token to requests
+ * - Updates last activity timestamp for session tracking
  * - Logs requests in development
  */
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Get auth token from store
-    const accessToken = useAuthStore.getState().accessToken;
+    // Get auth token from store - lazy import to break circular dependency
+    const { useAuthStore } = require('../stores/authStore');
+    const { accessToken, isAuthenticated, updateLastActivity } = useAuthStore.getState();
 
     // Add authorization header if token exists
     if (accessToken && config.headers) {
       config.headers.Authorization = `Bearer ${accessToken}`;
+    } else if (__DEV__ && isAuthenticated) {
+      // Warn if authenticated but no token (should not happen)
+      console.warn(`[API Client] User is authenticated but no accessToken found for ${config.url}`);
+      // Also log the full auth state for debugging
+      const fullState = useAuthStore.getState();
+      console.warn('[API Client] Full auth state:', {
+        hasUser: !!fullState.user,
+        accessToken: accessToken ? `${accessToken.substring(0, 20)}...` : null,
+        refreshToken: fullState.refreshToken ? `${fullState.refreshToken.substring(0, 20)}...` : null,
+        isAuthenticated: fullState.isAuthenticated,
+        lastActivityAt: fullState.lastActivityAt,
+      });
+    }
+
+    // Update last activity for authenticated requests
+    // This tracks user activity and prevents session timeout while user is active
+    if (isAuthenticated) {
+      updateLastActivity();
     }
 
     // Log request in development
@@ -55,6 +74,8 @@ apiClient.interceptors.request.use(
       console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
         params: config.params,
         data: config.data,
+        hasToken: !!accessToken,
+        isAuthenticated,
       });
     }
 
@@ -88,33 +109,40 @@ apiClient.interceptors.response.use(
 
     // Handle 401 Unauthorized - Token expired or invalid
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // Don't retry for auth endpoints or refresh endpoint itself
+      // Don't retry for auth endpoints, refresh endpoint, or passcode verification
       const isAuthEndpoint = originalRequest.url?.includes('/auth/login') ||
                              originalRequest.url?.includes('/auth/register') ||
                              originalRequest.url?.includes('/auth/verify-code') ||
-                             originalRequest.url?.includes('/auth/refresh');
+                             originalRequest.url?.includes('/auth/refresh') ||
+                             originalRequest.url?.includes('/security/passcode/verify');
       
       if (!isAuthEndpoint) {
         originalRequest._retry = true;
 
         try {
-          // Attempt to refresh token
-          const { refreshSession, isAuthenticated } = useAuthStore.getState();
+          // Attempt to refresh token - lazy import to break circular dependency
+          const { useAuthStore } = require('../stores/authStore');
+          const { refreshSession, isAuthenticated, refreshToken } = useAuthStore.getState();
           
-          // Only try refresh if we're still authenticated
-          if (isAuthenticated) {
+          // Only try refresh if we have a refresh token
+          if (isAuthenticated && refreshToken) {
             await refreshSession();
 
             // Retry original request with new token
             const newAccessToken = useAuthStore.getState().accessToken;
             if (originalRequest.headers && newAccessToken) {
               originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-              return apiClient(originalRequest);
+              return axios.request(originalRequest);
             }
+          } else {
+            console.warn('[API Client] No refresh token available, cannot refresh session');
+            // No refresh token means full re-authentication is needed
+            return Promise.reject(error);
           }
         } catch (refreshError) {
           // Refresh failed, clear auth state
           console.warn('[API Client] Token refresh failed, clearing session');
+          const { useAuthStore } = require('../stores/authStore');
           const { reset } = useAuthStore.getState();
           reset();
           return Promise.reject(refreshError);

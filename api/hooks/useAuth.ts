@@ -70,6 +70,11 @@ export function useVerifyCode() {
   return useMutation({
     mutationFn: (data: VerifyCodeRequest) => authService.verifyCode(data),
     onSuccess: (response) => {
+      const now = new Date();
+      const expiresAt = response.expiresAt 
+        ? new Date(response.expiresAt)
+        : new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+      
       useAuthStore.setState({
         user: response.user,
         accessToken: response.accessToken,
@@ -77,6 +82,9 @@ export function useVerifyCode() {
         isAuthenticated: true,
         pendingVerificationEmail: null,
         onboardingStatus: response.user.onboardingStatus || 'wallets_pending',
+        lastActivityAt: now.toISOString(),
+        tokenIssuedAt: now.toISOString(),
+        tokenExpiresAt: expiresAt.toISOString(),
       });
     },
   });

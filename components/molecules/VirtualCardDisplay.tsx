@@ -101,10 +101,9 @@ export const VirtualCreditCard: React.FC<VirtualCreditCardProps> = ({
 
   return (
     <TouchableOpacity onPress={flipCard} activeOpacity={0.9}>
-      <View style={{ height: 230, width: '100%' }}>
+      <View className="h-[240px] w-full">
         <Animated.View
           style={[
-            shadows.lg,
             {
               position: 'absolute',
               width: '100%',
@@ -118,26 +117,14 @@ export const VirtualCreditCard: React.FC<VirtualCreditCardProps> = ({
             padding="medium"
             style={{
               height: '100%',
-              backgroundColor: resolvedBackgroundColor,
+              backgroundColor: "#000",
               justifyContent: 'space-between',
             }}
           >
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
+            <View className="flex-row justify-between items-center">
               <Text
-                style={[
-                  {
-                    fontFamily: typography.fonts.secondary,
-                    fontSize: 18,
-                    fontWeight: 'bold',
-                    color: resolvedTextColor,
-                  },
-                ]}
+                className="font-body-bold text-lg font-bold"
+                style={{ color: "#fff" }}
               >
                 {cardTitle || 'Virtual Card'}
               </Text>
@@ -145,37 +132,20 @@ export const VirtualCreditCard: React.FC<VirtualCreditCardProps> = ({
                 name={resolvedCardType === 'visa' ? 'cc-visa' : 'cc-mastercard'}
                 library="fontawesome"
                 size={28}
-                color={resolvedTextColor}
+                color={"#fff"}
               />
             </View>
             <View>
               <Text
-                style={[
-                  {
-                    fontSize: typography.styles.body.size,
-                    color: resolvedTextColor,
-                    letterSpacing: 2,
-                    marginBottom: spacing.md,
-                    fontFamily: 'monospace',
-                  },
-                ]}
+                className="text-body-size tracking-xs mb-md font-mono"
+                style={{ color: "#fff" }}
               >
                 {formatCardNumber(resolvedCardNumber)}
               </Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                }}
-              >
+              <View className="flex-row justify-between">
                 <Text
-                  style={[
-                    {
-                      fontFamily: typography.fonts.primary,
-                      fontSize: typography.styles.caption.size,
-                      color: resolvedTextColor,
-                    },
-                  ]}
+                  className="font-primary text-caption-size"
+                  style={{ color: "#fff" }}
                 >
                   {cardholderName || ''}
                 </Text>
@@ -183,25 +153,14 @@ export const VirtualCreditCard: React.FC<VirtualCreditCardProps> = ({
             </View>
             <View>
               <Text
-                style={[
-                  {
-                    fontFamily: typography.fonts.primary,
-                    fontSize: typography.styles.caption.size,
-                    color: colors.text.secondary,
-                  },
-                ]}
+                className="font-primary text-caption-size"
+                style={{ color: colors.text.secondary }}
               >
                 Balance
               </Text>
               <Text
-                style={[
-                  {
-                    fontFamily: typography.fonts.secondary,
-                    fontSize: 20,
-                    fontWeight: 'bold',
-                    color: resolvedTextColor,
-                  },
-                ]}
+                className="font-secondary text-xl font-bold"
+                style={{ color: "#fff" }}
               >
                 {formatBalance(resolvedBalance)}
               </Text>
@@ -224,47 +183,27 @@ export const VirtualCreditCard: React.FC<VirtualCreditCardProps> = ({
             padding="medium"
             style={{
               height: '100%',
-              backgroundColor: resolvedBackgroundColor,
+              backgroundColor: "#000",
               justifyContent: 'space-between',
             }}
           >
             <View>
               <View
-                style={{
-                  backgroundColor: colors.text.onAccent,
-                  height: 50,
-                  marginTop: spacing.lg,
-                }}
+                className="bg-on-accent h-12 mt-lg"
               />
               <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginTop: spacing.md,
-                  backgroundColor: colors.text.onAccent,
-                  padding: spacing.sm,
-                  borderRadius: spacing.xs,
-                }}
+                className="flex-row items-center mt-md bg-on-accent p-sm rounded-xs"
               >
                 <Text
-                  style={{
-                    flex: 1,
-                    textAlign: 'right',
-                    color: colors.text.onPrimary,
-                    fontFamily: 'monospace',
-                    fontSize: 16,
-                  }}
+                  className="flex-1 text-right font-mono text-base"
+                  style={{ color: "#fff" }}
                 >
                   {cvc || '***'}
                 </Text>
               </View>
               <Text
-                style={{
-                  color: resolvedTextColor,
-                  fontSize: 12,
-                  marginTop: spacing.lg,
-                  alignSelf: 'flex-end',
-                }}
+                className="text-xs mt-lg self-end"
+                style={{ color: "#fff" }}
               >
                 {expiryDate ? `Expires: ${expiryDate}` : 'Expires: MM/YY'}
               </Text>
@@ -273,7 +212,7 @@ export const VirtualCreditCard: React.FC<VirtualCreditCardProps> = ({
               name={resolvedCardType === 'visa' ? 'cc-visa' : 'cc-mastercard'}
               library="fontawesome"
               size={28}
-              color={resolvedTextColor}
+              color={"#fff"}
               style={{ alignSelf: 'flex-end' }}
             />
           </Card>

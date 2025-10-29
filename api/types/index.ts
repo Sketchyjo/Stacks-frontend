@@ -105,6 +105,7 @@ export interface User {
   phoneVerified: boolean;
   kycStatus: 'pending' | 'processing' | 'approved' | 'rejected' | 'expired';
   onboardingStatus: 'started' | 'wallets_pending' | 'kyc_pending' | 'kyc_approved' | 'kyc_rejected' | 'completed';
+  hasPasscode?: boolean;
   createdAt: string;
 }
 
@@ -169,8 +170,11 @@ export interface VerifyPasscodeRequest {
 
 export interface VerifyPasscodeResponse {
   verified: boolean;
-  sessionToken: string;
+  accessToken: string;
+  refreshToken: string;
   expiresAt: string;
+  passcodeSessionToken: string; // Used to track passcode session (10 mins)
+  passcodeSessionExpiresAt: string; // Expiry time for passcode session
 }
 
 export interface DeletePasscodeRequest {
@@ -227,24 +231,13 @@ export interface PortfolioOverview {
 
 // ============= Wallet Types =============
 
-// Testnet chains (primary focus for development)
-export type TestnetChain = 
-  | 'ETH-SEPOLIA' 
-  | 'MATIC-AMOY' 
-  | 'SOL-DEVNET' 
-  | 'APTOS-TESTNET' 
-  | 'BASE-SEPOLIA';
+// Solana testnet only (simplified configuration)
+export type TestnetChain = 'SOL-DEVNET';
 
-// Mainnet chains (for production)
-export type MainnetChain = 
-  | 'ETH' 
-  | 'MATIC' 
-  | 'AVAX' 
-  | 'SOL' 
-  | 'APTOS' 
-  | 'BASE';
+// Mainnet chains (for future production use)
+export type MainnetChain = 'SOL';
 
-// All supported wallet chains
+// All supported wallet chains (Solana only)
 export type WalletChain = TestnetChain | MainnetChain;
 
 export type WalletStatus = 'creating' | 'live' | 'failed';

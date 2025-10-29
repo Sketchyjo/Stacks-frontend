@@ -120,69 +120,38 @@ const EmptyState = () => (
 
 const DepositNetworksScreen = () => {
   const params = useLocalSearchParams<{ coin?: string }>();
-  const { width } = useWindowDimensions();
-  const isCompact = width <= breakpoints.sm;
-  const isCondensed = width <= breakpoints.md;
-  const containerPadding = isCompact ? 20 : 24;
-  const contentBottomPadding = isCompact ? 24 : 32;
-  const listSpacing = isCompact ? 12 : 16;
 
   const stablecoin = useMemo(
     () => getStablecoinById(Array.isArray(params.coin) ? params.coin[0] : params.coin),
     [params.coin]
   );
 
+  // Since we only support Solana now, automatically redirect to address screen
+  React.useEffect(() => {
+    if (stablecoin) {
+      router.replace({
+        pathname: '/deposit/address',
+        params: { coin: stablecoin.id },
+      });
+    }
+  }, [stablecoin]);
+
   if (!stablecoin) {
     return <EmptyState />;
   }
 
-  const closeButton = (
-    <TouchableOpacity
-      onPress={() => router.dismiss()}
-      activeOpacity={0.9}
-      className="h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F6]"
-      accessibilityLabel="Close deposit flow"
-    >
-      <X size={18} color="#111827" strokeWidth={1.5} />
-    </TouchableOpacity>
-  );
-
+  // Show loading state while redirecting
   return (
     <SafeAreaView className="flex-1 bg-white">
       <DepositScreenHeader
         title={`${stablecoin.name} (${stablecoin.symbol})`}
-        subtitle="Select Network"
-        // rightAccessory={closeButton}
+        subtitle="Solana Network"
       />
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{
-          paddingHorizontal: containerPadding,
-          paddingBottom: contentBottomPadding,
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View
-          style={{
-            marginTop: isCompact ? 4 : 8,
-            gap: listSpacing,
-          }}
-        >
-          {stablecoin.networks.map((network) => (
-            <NetworkRow
-              key={network.id}
-              coinId={stablecoin.id}
-              networkId={network.id}
-              name={network.name}
-              subtitle={network.subtitle}
-              ticker={network.ticker}
-              chainColor={network.chainColor}
-              icon={network.icon}
-              isCompact={isCondensed}
-            />
-          ))}
-        </View>
-      </ScrollView>
+      <View className="flex-1 items-center justify-center px-6">
+        <Text className="text-center text-sm text-[#6B7280]">
+          Redirecting to Solana deposit address...
+        </Text>
+      </View>
     </SafeAreaView>
   );
 };

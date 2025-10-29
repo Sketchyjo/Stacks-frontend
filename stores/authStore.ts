@@ -2,19 +2,12 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authService, passcodeService } from '../api/services';
+import type { User as ApiUser } from '../api/types';
 
-export interface User {
-  id: string;
-  email: string;
+// Extend the API User type with additional local fields
+export interface User extends Omit<ApiUser, 'phone'> {
   fullName?: string;
   phoneNumber?: string;
-  emailVerified: boolean;
-  phoneVerified?: boolean;
-  kycStatus?: 'pending' | 'processing' | 'approved' | 'rejected' | 'expired';
-  onboardingStatus?: 'pending' | 'started' | 'kyc_pending' | 'kyc_processing' | 'kyc_rejected' | 'completed';
-  hasPasscode?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 interface AuthState {
@@ -23,6 +16,9 @@ interface AuthState {
   isAuthenticated: boolean;
   accessToken: string | null;
   refreshToken: string | null;
+  lastActivityAt: string | null; // Track last user activity for session timeout
+  tokenIssuedAt: string | null; // Track when token was issued (for 7-day expiry)
+  tokenExpiresAt: string | null; // Track when token expires (7 days from issuance)
   
   // Onboarding State
   hasCompletedOnboarding: boolean;
@@ -52,6 +48,14 @@ interface AuthActions {
   // Session management
   refreshSession: () => Promise<void>;
   updateUser: (user: Partial<User>) => void;
+  updateLastActivity: () => void;
+  checkTokenExpiry: () => boolean; // Check if 7-day token has expired
+  clearExpiredSession: () => void; // Clear session if 7-day token expired
+  
+  // Passcode session management
+  clearPasscodeSession: () => void;
+  checkPasscodeSessionExpiry: () => boolean;
+  setPasscodeSession: (token: string, expiresAt: string) => void;
   
   // Passcode/Biometric
   setPasscode: (passcode: string) => Promise<void>;
@@ -80,6 +84,9 @@ const initialState: AuthState = {
   isAuthenticated: false,
   accessToken: null,
   refreshToken: null,
+  lastActivityAt: null,
+  tokenIssuedAt: null,
+  tokenExpiresAt: null,
   hasCompletedOnboarding: false,
   onboardingStatus: null,
   currentOnboardingStep: null,
@@ -103,6 +110,9 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         try {
           const response = await authService.login({ email, password });
           
+          const now = new Date();
+          const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+          
           set({
             user: response.user,
             isAuthenticated: true,
@@ -110,6 +120,9 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             refreshToken: response.refreshToken,
             onboardingStatus: response.user.onboardingStatus || null,
             hasPasscode: response.user.hasPasscode || false,
+            lastActivityAt: now.toISOString(),
+            tokenIssuedAt: now.toISOString(),
+            tokenExpiresAt: response.expiresAt || expiresAt.toISOString(),
             isLoading: false,
           });
         } catch (error) {
@@ -149,7 +162,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       register: async (email: string, password: string, name: string) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await authService.register({ email, password, name });
+          const response = await authService.register({ email, password });
           
           // Store pending email but DON'T authenticate yet - user needs to verify
           set({
@@ -179,7 +192,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
           const response = await authService.refreshToken({ refreshToken });
           
           set({
-            accessToken: response.token,
+            accessToken: response.accessToken,
             refreshToken: response.refreshToken,
             isLoading: false,
           });
@@ -201,13 +214,95 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         }
       },
 
+      // Session activity tracking
+      updateLastActivity: () => {
+        set({ lastActivityAt: new Date().toISOString() });
+      },
+
+      // Check if 7-day token has expired
+      checkTokenExpiry: () => {
+        const { tokenExpiresAt, isAuthenticated } = get();
+        
+        // If not authenticated, no token to check
+        if (!isAuthenticated) return false;
+        
+        // If no expiry time set, assume expired
+        if (!tokenExpiresAt) return true;
+        
+        // Check if 7 days have passed since token issuance
+        const expiryTime = new Date(tokenExpiresAt).getTime();
+        const now = new Date().getTime();
+        
+        return now >= expiryTime;
+      },
+
+      // Clear session if 7-day token has expired
+      clearExpiredSession: () => {
+        console.log('[AuthStore] 7-day session expired, clearing all auth data');
+        set({
+          user: null,
+          isAuthenticated: false,
+          accessToken: null,
+          refreshToken: null,
+          lastActivityAt: null,
+          tokenIssuedAt: null,
+          tokenExpiresAt: null,
+          passcodeSessionToken: undefined,
+          passcodeSessionExpiresAt: undefined,
+          onboardingStatus: null,
+          currentOnboardingStep: null,
+        });
+      },
+
+      // Passcode session management
+      clearPasscodeSession: () => {
+        console.log('[AuthStore] Clearing passcode session');
+        set({
+          passcodeSessionToken: undefined,
+          passcodeSessionExpiresAt: undefined,
+        });
+      },
+
+      checkPasscodeSessionExpiry: () => {
+        const { passcodeSessionToken, passcodeSessionExpiresAt, isAuthenticated } = get();
+        
+        // If not authenticated, no passcode session to check
+        if (!isAuthenticated) return false;
+        
+        // If no passcode session token, it's expired/missing
+        if (!passcodeSessionToken || !passcodeSessionExpiresAt) return true;
+        
+        // Check if passcode session has expired (10 mins)
+        const expiryTime = new Date(passcodeSessionExpiresAt).getTime();
+        const now = new Date().getTime();
+        
+        return now >= expiryTime;
+      },
+
+      setPasscodeSession: (token: string, expiresAt: string) => {
+        set({
+          passcodeSessionToken: token,
+          passcodeSessionExpiresAt: expiresAt,
+        });
+      },
+
       // State Management
       setUser: (user: User) => {
         set({ user, isAuthenticated: true });
       },
 
       setTokens: (accessToken: string, refreshToken: string) => {
-        set({ accessToken, refreshToken, isAuthenticated: true });
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+        
+        set({ 
+          accessToken, 
+          refreshToken, 
+          isAuthenticated: true,
+          lastActivityAt: now.toISOString(),
+          tokenIssuedAt: now.toISOString(),
+          tokenExpiresAt: expiresAt.toISOString(),
+        });
       },
 
       setPendingEmail: (email: string | null) => {
@@ -247,11 +342,36 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         try {
           const response = await passcodeService.verifyPasscode({ passcode });
           
-          // Store the session token if verification succeeds
           if (response.verified) {
+            const now = new Date();
+            const tokenExpiresAt = response.expiresAt 
+              ? new Date(response.expiresAt)
+              : new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+            
+            console.log('[AuthStore] Passcode verified, storing tokens:', {
+              hasAccessToken: !!response.accessToken,
+              hasRefreshToken: !!response.refreshToken,
+              hasPasscodeSessionToken: !!response.passcodeSessionToken,
+            });
+            
+            // Store authentication tokens and passcode session
             set({
-              passcodeSessionToken: response.sessionToken,
-              passcodeSessionExpiresAt: response.expiresAt,
+              accessToken: response.accessToken,
+              refreshToken: response.refreshToken,
+              isAuthenticated: true,
+              lastActivityAt: now.toISOString(),
+              tokenIssuedAt: now.toISOString(),
+              tokenExpiresAt: tokenExpiresAt.toISOString(),
+              passcodeSessionToken: response.passcodeSessionToken,
+              passcodeSessionExpiresAt: response.passcodeSessionExpiresAt,
+            });
+            
+            // Verify tokens were actually set
+            const state = get();
+            console.log('[AuthStore] Tokens stored, verification:', {
+              hasAccessToken: !!state.accessToken,
+              hasRefreshToken: !!state.refreshToken,
+              isAuthenticated: state.isAuthenticated,
             });
           }
           
@@ -288,15 +408,26 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       name: 'auth-storage',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
+        // User & Session Data
         user: state.user,
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
+        lastActivityAt: state.lastActivityAt,
+        tokenIssuedAt: state.tokenIssuedAt,
+        tokenExpiresAt: state.tokenExpiresAt,
+        isAuthenticated: state.isAuthenticated,
+        
+        // Onboarding State
         hasPasscode: state.hasPasscode,
         hasCompletedOnboarding: state.hasCompletedOnboarding,
-        isBiometricEnabled: state.isBiometricEnabled,
-        isAuthenticated: state.isAuthenticated,
         onboardingStatus: state.onboardingStatus,
+        currentOnboardingStep: state.currentOnboardingStep,
+        
+        // Email Verification
         pendingVerificationEmail: state.pendingVerificationEmail,
+        
+        // Passcode/Biometric
+        isBiometricEnabled: state.isBiometricEnabled,
         passcodeSessionToken: state.passcodeSessionToken,
         passcodeSessionExpiresAt: state.passcodeSessionExpiresAt,
       }),

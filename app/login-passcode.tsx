@@ -11,6 +11,7 @@ import { Icon } from '@/components/atoms/Icon';
 import { Fingerprint,  Trash } from 'lucide-react-native';
 import { useAuthStore } from '@/stores/authStore';
 import { useVerifyPasscode } from '@/api/hooks';
+import { SessionManager } from '@/utils/sessionManager';
 
 const BACKSPACE_KEY = 'backspace';
 const FINGERPRINT_KEY = 'fingerprint';
@@ -82,7 +83,24 @@ export default function LoginPasscodeScreen() {
     verifyPasscode(
       { passcode: code },
       {
-        onSuccess: () => {
+        onSuccess: async (response) => {
+          console.log('[LoginPasscode] Passcode verified successfully');
+          
+          // Schedule passcode session expiry monitoring
+          if (response.passcodeSessionExpiresAt) {
+            SessionManager.schedulePasscodeSessionExpiry(response.passcodeSessionExpiresAt);
+          }
+          
+          // Wait for state to be fully persisted before navigation
+          // This ensures the access token is available when portfolio/wallet APIs are called
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // Verify token is set before navigating
+          const token = useAuthStore.getState().accessToken;
+          if (!token) {
+            console.warn('[LoginPasscode] Access token not found after verification');
+          }
+          
           // Navigate to main app
           router.replace('/(tabs)');
         },

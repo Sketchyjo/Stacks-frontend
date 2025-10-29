@@ -9,6 +9,7 @@ import {
 import { Icon } from '../atoms/Icon';
 import { ArrowDown, ArrowDown01, ChevronDown, Eye, EyeOff } from 'lucide-react-native';
 import { useUIStore } from '@/stores';
+import { ActionSlideshow, SlideData } from './ActionSlideshow';
 
 export interface BalanceCardProps extends ViewProps {
   balance?: string;
@@ -19,7 +20,12 @@ export interface BalanceCardProps extends ViewProps {
   onWithdrawPress?: () => void;
   onReceivePress?: () => void;
   onCreateBasketPress?: () => void;
-  onMorePress?: () => void;
+  onHistoryPress?: () => void;
+  slides?: SlideData[];
+  onVerifyPress?: () => void;
+  onGetCardPress?: () => void;
+  onCopyInvestorsPress?: () => void;
+  onFundWithCryptoPress?: () => void;
   className?: string;
 }
 
@@ -41,11 +47,11 @@ const ActionButton = ({
     onPress={onPress}
     accessibilityLabel={label}
   >
-    <View className={`w-14 h-14 rounded-full ${bgColor} items-center justify-center mb-1`}>
+    <View className={`w-[60px] h-[60px] rounded-full ${bgColor} items-center justify-center mb-1`}>
       <Icon
         library={library as any}
         name={icon}
-        size={24}
+        size={28}
         strokeWidth={2}
       />
     </View>
@@ -62,7 +68,12 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
   onWithdrawPress,
   onReceivePress,
   onCreateBasketPress,
-  onMorePress,
+  onHistoryPress,
+  slides,
+  onVerifyPress,
+  onGetCardPress,
+  onCopyInvestorsPress,
+  onFundWithCryptoPress,
   className,
   ...props
 }) => {
@@ -75,6 +86,46 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
     // Replace numbers with dashes, keep currency symbol
     return value.replace(/[\d,\.]+/g, (match) => '−'.repeat(Math.min(match.length, 6)));
   };
+
+  // Default slides with custom actions
+  const defaultSlides: SlideData[] = [
+    {
+      id: '1',
+      title: 'Verify Your Identity',
+      description: 'Complete KYC to unlock full trading features and higher limits',
+      icon: 'shield-person-6',
+      gradient: ['#667EEA', '#764BA2'],
+      ctaText: 'Verify Now',
+      onPress: onVerifyPress,
+    },
+    {
+      id: '2',
+      title: 'Get Your Dollar Card',
+      description: 'Physical or virtual card for seamless global spending',
+      icon: 'credit-card-8',
+      gradient: ['#F093FB', '#F5576C'],
+      ctaText: 'Get Card',
+      onPress: onGetCardPress,
+    },
+    {
+      id: '3',
+      title: 'Copy Top Investors',
+      description: 'Follow and replicate winning investment strategies',
+      icon: 'data-exploration-20',
+      gradient: ['#4FACFE', '#00F2FE'],
+      ctaText: 'Explore',
+      onPress: onCopyInvestorsPress,
+    },
+    {
+      id: '4',
+      title: 'Fund with Stablecoins',
+      description: 'Top up your account using USDC or USDT instantly',
+      icon: 'usdc-8',
+      gradient: ['#43E97B', '#38F9D7'],
+      ctaText: 'Fund Account',
+      onPress: onFundWithCryptoPress,
+    },
+  ];
 
   return (
     <View
@@ -152,12 +203,19 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
         />
 
         <ActionButton
-          icon="credit-card"
-          label="Cards"
+          icon="file-clock"
+          label="History"
           bgColor="bg-[#F7F7F7]"
-          onPress={onMorePress}
+          onPress={onHistoryPress}
         />
       </View>
+
+      {/* Action Slideshow */}
+      <ActionSlideshow 
+        slides={slides || defaultSlides}
+        autoPlay={true}
+        autoPlayInterval={5000}
+      />
     </View>
   );
 };

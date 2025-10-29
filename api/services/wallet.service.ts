@@ -1,6 +1,6 @@
 /**
  * Wallet API Service
- * Handles wallet, balance, and transaction-related API calls
+ * Handles Solana wallet, balance, and transaction-related API calls
  */
 
 import apiClient from '../client';
@@ -122,10 +122,10 @@ export const walletService = {
   },
 
   /**
-   * Get wallet addresses, optionally filtered by chain
+   * Get Solana wallet address
    */
   async getWalletAddresses(params?: GetWalletAddressesRequest): Promise<WalletAddressesResponse> {
-    const chain = params?.chain || 'ethereum'; // Default to ethereum if not specified
+    const chain = params?.chain || 'SOL-DEVNET'; // Default to Solana testnet
     const endpoint = WALLET_ENDPOINTS.ADDRESSES.replace(':chain', chain);
     return apiClient.get<WalletAddressesResponse>(endpoint);
   },

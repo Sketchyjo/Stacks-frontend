@@ -20,6 +20,7 @@ const App = () => {
         headerShown: false,
       }}>
       <Stack.Screen name="onboarding" />
+      <Stack.Screen name="login-passcode" />
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
     </Stack>
@@ -68,6 +69,7 @@ export default function Layout() {
     return (
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="onboarding" />
+        <Stack.Screen name="login-passcode" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="basket/create" options={{ headerShown: false, presentation: 'modal' }} />

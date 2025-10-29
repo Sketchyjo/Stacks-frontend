@@ -8,7 +8,10 @@ import { authService } from '../api/services';
 
 export class SessionManager {
   private static refreshTimer: NodeJS.Timeout | null = null;
+  private static passcodeSessionTimer: NodeJS.Timeout | null = null;
   private static initialized = false;
+  private static readonly SESSION_TIMEOUT_MS = 7 * 24 * 60 * 60 * 1000; // 7 days (for token expiry)
+  private static readonly PASSCODE_SESSION_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
 
   /**
    * Check if token is expired
@@ -18,6 +21,7 @@ export class SessionManager {
     const now = new Date().getTime();
     return expiryTime <= now;
   }
+
 
   /**
    * Get time until token expires (in milliseconds)
@@ -45,7 +49,7 @@ export class SessionManager {
       const response = await authService.refreshToken({ refreshToken });
       
       useAuthStore.setState({
-        accessToken: response.token,
+        accessToken: response.accessToken,
         refreshToken: response.refreshToken,
       });
 
@@ -94,18 +98,74 @@ export class SessionManager {
   }
 
   /**
-   * Handle session expiration
+   * Handle session expiration (7-day token expiry)
+   * Clears ALL auth data including user data - requires full re-authentication
    */
-  private static handleSessionExpired(): void {
-    console.log('[SessionManager] Session expired, clearing auth state');
+  static handleSessionExpired(): void {
+    console.log('[SessionManager] 7-day session expired, clearing all auth data');
     
     // Clear any refresh timers
     this.cleanup();
     
-    // Clear auth state (don't call logout as it may cause API calls)
-    const { reset } = useAuthStore.getState();
-    reset();
+    // Use the store's clearExpiredSession method
+    const { clearExpiredSession } = useAuthStore.getState();
+    clearExpiredSession();
   }
+
+  /**
+   * Handle passcode session expiration
+   * Only clears the passcode session, not the full auth session
+   */
+  static handlePasscodeSessionExpired(): void {
+    console.log('[SessionManager] Passcode session expired, clearing passcode session token');
+    
+    // Clear passcode session timer
+    if (this.passcodeSessionTimer) {
+      clearTimeout(this.passcodeSessionTimer);
+      this.passcodeSessionTimer = null;
+    }
+    
+    // Clear only the passcode session tokens
+    const { clearPasscodeSession } = useAuthStore.getState();
+    clearPasscodeSession();
+  }
+
+  /**
+   * Check if passcode session is expired
+   */
+  static isPasscodeSessionExpired(): boolean {
+    const { checkPasscodeSessionExpiry } = useAuthStore.getState();
+    return checkPasscodeSessionExpiry();
+  }
+
+  /**
+   * Schedule passcode session expiration check
+   * Passcode session lasts 10 minutes
+   */
+  static schedulePasscodeSessionExpiry(expiresAt: string): void {
+    // Clear existing timer
+    if (this.passcodeSessionTimer) {
+      clearTimeout(this.passcodeSessionTimer);
+      this.passcodeSessionTimer = null;
+    }
+
+    const timeUntilExpiry = this.getTimeUntilExpiry(expiresAt);
+    
+    if (timeUntilExpiry > 0) {
+      console.log(
+        `[SessionManager] Scheduling passcode session expiry in ${Math.round(timeUntilExpiry / 1000 / 60)} minutes`
+      );
+      
+      this.passcodeSessionTimer = setTimeout(() => {
+        this.handlePasscodeSessionExpired();
+      }, timeUntilExpiry);
+    } else {
+      // Passcode session is already expired
+      console.log('[SessionManager] Passcode session already expired');
+      this.handlePasscodeSessionExpired();
+    }
+  }
+
 
   /**
    * Initialize session management
@@ -117,7 +177,7 @@ export class SessionManager {
       return;
     }
 
-    const { accessToken, refreshToken, isAuthenticated } = useAuthStore.getState();
+    const { accessToken, refreshToken, isAuthenticated, passcodeSessionExpiresAt, checkTokenExpiry } = useAuthStore.getState();
     
     if (!isAuthenticated || !accessToken || !refreshToken) {
       console.log('[SessionManager] No active session to initialize');
@@ -126,8 +186,29 @@ export class SessionManager {
 
     console.log('[SessionManager] Initializing session management');
     
-    // Since we don't have expiresAt in store, we'll handle it in the API client
-    // For now, schedule a check in 10 minutes
+    // Check if 7-day token has expired
+    if (checkTokenExpiry()) {
+      console.log('[SessionManager] 7-day token expired');
+      this.handleSessionExpired();
+      return;
+    }
+    
+    // Check if passcode session has expired
+    if (passcodeSessionExpiresAt) {
+      if (this.isPasscodeSessionExpired()) {
+        console.log('[SessionManager] Passcode session expired');
+        this.handlePasscodeSessionExpired();
+      } else {
+        // Schedule passcode session expiry
+        this.schedulePasscodeSessionExpiry(passcodeSessionExpiresAt);
+      }
+    }
+    
+    // Update last activity to current time since app is being opened
+    const { updateLastActivity } = useAuthStore.getState();
+    updateLastActivity();
+    
+    // Schedule periodic health check
     this.scheduleHealthCheck();
     
     this.initialized = true;
@@ -137,16 +218,29 @@ export class SessionManager {
    * Schedule periodic health check
    */
   private static scheduleHealthCheck(): void {
-    // Check session health every 10 minutes
-    const CHECK_INTERVAL = 10 * 60 * 1000;
+    // Check session health every 30 minutes for token expiry only
+    const CHECK_INTERVAL = 30 * 60 * 1000;
     
     setTimeout(() => {
-      const { isAuthenticated, accessToken } = useAuthStore.getState();
+      const { isAuthenticated, accessToken, checkTokenExpiry } = useAuthStore.getState();
       
       if (isAuthenticated && accessToken) {
         console.log('[SessionManager] Running session health check');
+        
+        // Check if 7-day token has expired
+        if (checkTokenExpiry()) {
+          console.log('[SessionManager] 7-day token expired during health check');
+          this.handleSessionExpired();
+          return;
+        }
+        
         // Attempt to refresh token to ensure it's still valid
         this.refreshToken();
+      }
+      
+      // Schedule next check if still initialized
+      if (this.initialized) {
+        this.scheduleHealthCheck();
       }
     }, CHECK_INTERVAL);
   }
@@ -160,6 +254,11 @@ export class SessionManager {
     if (this.refreshTimer) {
       clearTimeout(this.refreshTimer);
       this.refreshTimer = null;
+    }
+    
+    if (this.passcodeSessionTimer) {
+      clearTimeout(this.passcodeSessionTimer);
+      this.passcodeSessionTimer = null;
     }
     
     this.initialized = false;

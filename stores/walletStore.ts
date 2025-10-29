@@ -68,7 +68,7 @@ interface WalletActions {
   reset: () => void;
 }
 
-// Mock data
+// Mock data - Solana tokens only
 const MOCK_TOKENS: Token[] = [
   {
     id: 'usdc',
@@ -77,7 +77,7 @@ const MOCK_TOKENS: Token[] = [
     balance: 199.9,
     usdValue: 199.9,
     priceChange: -0.01,
-    network: 'USDC (SOL)',
+    network: 'Solana',
     icon: 'usdc',
   },
   {
@@ -87,7 +87,7 @@ const MOCK_TOKENS: Token[] = [
     balance: 500,
     usdValue: 500,
     priceChange: 0.02,
-    network: 'USDT (ETH)',
+    network: 'Solana',
     icon: 'usdt',
   },
   {
@@ -142,9 +142,9 @@ export const useWalletStore = create<WalletState & WalletActions>()(
             symbol: token.symbol,
             name: token.name,
             balance: parseFloat(token.balance),
-            usdValue: parseFloat(token.balanceUSD),
-            priceChange: 0, // Price change not in balance response
-            network: token.chain,
+            usdValue: parseFloat(token.usdValue),
+            priceChange: token.priceChange24h || 0,
+            network: token.network || 'Solana',
             icon: token.symbol.toLowerCase(),
           }));
           
@@ -188,11 +188,11 @@ export const useWalletStore = create<WalletState & WalletActions>()(
           const pricesResponse = await walletService.getPrices({ tokenIds });
           
           const updatedTokens = tokens.map(token => {
-            const priceData = pricesResponse.prices[token.symbol];
+            const priceData = pricesResponse.prices.find(p => p.symbol === token.symbol);
             return {
               ...token,
               priceChange: priceData?.priceChange24h || 0,
-              usdValue: token.balance * (priceData?.price || 1),
+              usdValue: token.balance * (parseFloat(priceData?.price || '1')),
             };
           });
           
@@ -218,24 +218,24 @@ export const useWalletStore = create<WalletState & WalletActions>()(
           const txResponse = await walletService.getTransactions({ limit: 50 });
           
           // Transform API transactions to store format
-          const transactions: Transaction[] = txResponse.items.map(tx => ({
+          const transactions: Transaction[] = txResponse.data.map(tx => ({
             id: tx.id,
             type: tx.type as Transaction['type'],
             token: {
-              id: tx.token.symbol.toLowerCase(),
-              symbol: tx.token.symbol,
-              name: tx.token.name,
+              id: tx.tokenId.toLowerCase(),
+              symbol: tx.tokenId,
+              name: tx.tokenId,
               balance: 0,
-              usdValue: parseFloat(tx.amountUSD),
+              usdValue: parseFloat(tx.usdAmount),
               priceChange: 0,
-              network: tx.token.chain,
-              icon: tx.token.symbol.toLowerCase(),
+              network: 'Solana',
+              icon: tx.tokenId.toLowerCase(),
             },
             amount: tx.amount,
-            usdAmount: tx.amountUSD,
-            from: tx.fromAddress,
-            to: tx.toAddress,
-            timestamp: tx.createdAt,
+            usdAmount: tx.usdAmount,
+            from: tx.from,
+            to: tx.to,
+            timestamp: tx.timestamp,
             status: tx.status as Transaction['status'],
             txHash: tx.txHash,
             fee: tx.fee,

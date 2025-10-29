@@ -215,7 +215,7 @@ export default function App() {
       {/* --- "Get Started" Button --- */}
       <View className="absolute bottom-6  w-full gap-y-2 items-center px-6">
         <Button title="Create an account" variant="primary" onPress={() => router.push('/(auth)')} />
-        <TouchableOpacity onPress={() => router.push('/(auth)/login-passcode')}>
+        <TouchableOpacity onPress={() => router.push('/login-passcode')}>
           <Text className="text-center font-sf-pro-medium text-[14px] text-border-primary">
             Already have an account?
           </Text>

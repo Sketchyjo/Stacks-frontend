@@ -49,10 +49,11 @@ export const passcodeService = {
   },
 
   /**
-   * Verify passcode and get short-lived session token
-   * Used for sensitive operations like withdrawals
+   * Verify passcode - dual purpose endpoint
+   * 1. Authentication: Returns access/refresh tokens for app login
+   * 2. Authorization: Returns session token for sensitive operations (withdrawals)
    * Increments failed attempts on incorrect passcode
-   * @returns Verification result with session token
+   * @returns Verification result with tokens (auth and/or session)
    */
   async verifyPasscode(data: VerifyPasscodeRequest): Promise<VerifyPasscodeResponse> {
     return apiClient.post<VerifyPasscodeResponse>(PASSCODE_ENDPOINTS.VERIFY, data);

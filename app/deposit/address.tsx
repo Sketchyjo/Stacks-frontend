@@ -76,26 +76,24 @@ const Highlight = ({
 };
 
 const DepositAddressScreen = () => {
-  const params = useLocalSearchParams<{ coin?: string; network?: string }>();
+  const params = useLocalSearchParams<{ coin?: string }>();
   const coinParam = useMemo(
     () => (Array.isArray(params.coin) ? params.coin[0] : params.coin),
     [params.coin]
   );
-  const networkParam = useMemo(
-    () => (Array.isArray(params.network) ? params.network[0] : params.network),
-    [params.network]
-  );
 
   const stablecoin = useMemo(() => getStablecoinById(coinParam), [coinParam]);
-  const network = useMemo(
-    () => getNetworkForStablecoin(coinParam, networkParam),
-    [coinParam, networkParam]
-  );
   
-  // Get the testnet chain for this network
-  const chain = useMemo(() => getTestnetChain(networkParam), [networkParam]);
+  // Hardcode Solana network since we only support Solana
+  const network = useMemo(() => {
+    if (!stablecoin) return null;
+    return stablecoin.networks[0]; // Always use the first (and only) Solana network
+  }, [stablecoin]);
+  
+  // Always use Solana testnet
+  const chain = getTestnetChain();
 
-  // Fetch wallet addresses filtered by chain
+  // Fetch wallet addresses for Solana testnet
   const { data: walletData, isLoading, isError, error } = useWalletAddresses(chain);
   console.log('walletData', walletData);
   
