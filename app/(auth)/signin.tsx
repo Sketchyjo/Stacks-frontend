@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Input, Button } from '../../components/ui';
+import { InputField } from '@/components';
+import { useLogin } from '@/api/hooks';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function SignIn() {
   const [formData, setFormData] = useState({
@@ -19,7 +20,8 @@ export default function SignIn() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState(false);
+  
+  const { mutate: login, isPending: isLoading } = useLogin();
 
   const updateField = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -46,75 +48,115 @@ export default function SignIn() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSignIn = async () => {
+  const handleSignIn = () => {
     if (!validateForm()) return;
 
-    setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      // In a real app, check if email is verified
-      // For demo, navigate to email verification
-      router.push({
-        pathname: '/(auth)/verify-email',
-        params: { email: formData.email },
-      });
-    }, 2000);
+    login(
+      {
+        email: formData.email,
+        password: formData.password,
+      },
+      {
+        onSuccess: (response) => {
+          // Route directly to home screen after successful sign-in
+          router.replace('/(tabs)');
+        },
+        onError: (error: any) => {
+          console.error('Login error:', error);
+          
+          // Handle specific error codes
+          const errorCode = error?.error?.code;
+          const errorMessage = error?.error?.message;
+          
+          let displayMessage = 'Invalid email or password';
+          
+          switch (errorCode) {
+            case 'INVALID_CREDENTIALS':
+              displayMessage = 'Invalid email or password. Please try again.';
+              break;
+            case 'ACCOUNT_INACTIVE':
+              displayMessage = 'Your account is inactive. Please contact support.';
+              break;
+            case 'UNAUTHORIZED':
+              // Check if email needs verification
+              if (errorMessage?.toLowerCase().includes('verif')) {
+                useAuthStore.setState({ pendingVerificationEmail: formData.email });
+                router.push('/(auth)/verify-email');
+                return;
+              }
+              displayMessage = errorMessage || displayMessage;
+              break;
+            case 'VALIDATION_ERROR':
+              displayMessage = 'Please check your email and password.';
+              break;
+            default:
+              displayMessage = errorMessage || displayMessage;
+          }
+          
+          setErrors({
+            password: displayMessage,
+          });
+        },
+      }
+    );
   };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="white" />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1">
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{ flexGrow: 1 }}
-          keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView
+        className="flex-1"
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={40}>
           {/* Content */}
           <View className="flex-1 px-6 pb-6">
             {/* Title */}
             <View className="mb-8 mt-4">
-              <Text className="font-heading text-[35px] text-gray-900">Welcome Back</Text>
-              <Text className="mt-2 font-heading-light text-base text-gray-600">
+              <Text className="font-body-bold text-[40px] text-gray-900">Welcome Back</Text>
+              <Text className="mt-2 font-body-medium text-base text-gray-600">
                 Sign in to continue your investment journey
               </Text>
             </View>
 
             {/* Form */}
             <View className="gap-y-4">
-              <Input
+              <InputField
+                required
                 label="Email Address"
                 placeholder="Enter your email"
                 value={formData.email}
-                onChangeText={(value) => updateField('email', value)}
+                onChangeText={(value: string) => updateField('email', value)}
                 error={errors.email}
-                leftIcon="mail-outline"
+                // leftIcon="mail-outline"
                 keyboardType="email-address"
                 autoCapitalize="none"
                 textContentType="emailAddress"
               />
 
-              <Input
+              <InputField
+                required
                 label="Password"
                 placeholder="Enter your password"
                 value={formData.password}
-                onChangeText={(value) => updateField('password', value)}
+                onChangeText={(value: string) => updateField('password', value)}
                 error={errors.password}
-                leftIcon="lock-closed-outline"
-                rightIcon={showPassword ? 'eye-outline' : 'eye-off-outline'}
-                onRightIconPress={() => setShowPassword(!showPassword)}
+                // leftIcon="lock-closed-outline"
+                // rightIcon={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                // onRightIconPress={() => setShowPassword(!showPassword)}
                 secureTextEntry={!showPassword}
                 textContentType="password"
               />
             </View>
 
-            {/* Forgot Password */}
-            <View className="mt-4">
-              <TouchableOpacity className="self-end">
-                <Text className="font-body text-[14px] font-bold text-gray-600">
+            {/* Forgot Password & Passcode Login */}
+            <View className="mt-4 flex-row justify-end">
+              
+              <TouchableOpacity
+                onPress={() => router.push('/(auth)/forgot-password')}
+                className="self-end">
+                <Text className="font-body text-[14px] font-bold text-blue-600">
                   Forgot Password?
                 </Text>
               </TouchableOpacity>
@@ -136,8 +178,7 @@ export default function SignIn() {
               </TouchableOpacity>
             </View>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

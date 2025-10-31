@@ -1,0 +1,221 @@
+import React from 'react';
+import {
+  View,
+  Text,
+  ViewProps,
+  TouchableOpacity,
+  useWindowDimensions,
+} from 'react-native';
+import { Icon } from '../atoms/Icon';
+import { ArrowDown, ArrowDown01, ChevronDown, Eye, EyeOff } from 'lucide-react-native';
+import { useUIStore } from '@/stores';
+import { ActionSlideshow, SlideData } from './ActionSlideshow';
+
+export interface BalanceCardProps extends ViewProps {
+  balance?: string;
+  percentChange?: string;
+  timeframe?: string;
+  currency?: string;
+  buyingPower?: string;
+  onWithdrawPress?: () => void;
+  onReceivePress?: () => void;
+  onCreateBasketPress?: () => void;
+  onHistoryPress?: () => void;
+  slides?: SlideData[];
+  onVerifyPress?: () => void;
+  onGetCardPress?: () => void;
+  onCopyInvestorsPress?: () => void;
+  onFundWithCryptoPress?: () => void;
+  className?: string;
+}
+
+const ActionButton = ({
+  icon,
+  label,
+  onPress,
+  library = 'lucide',
+  bgColor = 'bg-secondary',
+}: {
+  icon: string;
+  label: string;
+  onPress?: () => void;
+  library?: string;
+  bgColor?: string;
+}) => (
+  <TouchableOpacity 
+    className="items-center justify-center"
+    onPress={onPress}
+    accessibilityLabel={label}
+  >
+    <View className={`w-[60px] h-[60px] rounded-full ${bgColor} items-center justify-center mb-1`}>
+      <Icon
+        library={library as any}
+        name={icon}
+        size={28}
+        strokeWidth={2}
+      />
+    </View>
+    <Text className="text-[14px] font-body-medium">{label}</Text>
+  </TouchableOpacity>
+);
+
+export const BalanceCard: React.FC<BalanceCardProps> = ({
+  balance = '$0.00',
+  percentChange = '0.00%',
+  timeframe = '1D',
+  currency = 'USD',
+  buyingPower = '$0.00',
+  onWithdrawPress,
+  onReceivePress,
+  onCreateBasketPress,
+  onHistoryPress,
+  slides,
+  onVerifyPress,
+  onGetCardPress,
+  onCopyInvestorsPress,
+  onFundWithCryptoPress,
+  className,
+  ...props
+}) => {
+  const { width: screenWidth } = useWindowDimensions();
+  const { isBalanceVisible, toggleBalanceVisibility } = useUIStore();
+
+  // Helper function to mask balance values
+  const maskValue = (value: string) => {
+    if (isBalanceVisible) return value;
+    // Replace numbers with dashes, keep currency symbol
+    return value.replace(/[\d,\.]+/g, (match) => '−'.repeat(Math.min(match.length, 6)));
+  };
+
+  // Default slides with custom actions
+  const defaultSlides: SlideData[] = [
+    {
+      id: '1',
+      title: 'Verify Your Identity',
+      description: 'Complete KYC to unlock full trading features and higher limits',
+      icon: 'shield-person-6',
+      gradient: ['#667EEA', '#764BA2'],
+      ctaText: 'Verify Now',
+      onPress: onVerifyPress,
+    },
+    {
+      id: '2',
+      title: 'Get Your Dollar Card',
+      description: 'Physical or virtual card for seamless global spending',
+      icon: 'credit-card-8',
+      gradient: ['#F093FB', '#F5576C'],
+      ctaText: 'Get Card',
+      onPress: onGetCardPress,
+    },
+    {
+      id: '3',
+      title: 'Copy Top Investors',
+      description: 'Follow and replicate winning investment strategies',
+      icon: 'data-exploration-20',
+      gradient: ['#4FACFE', '#00F2FE'],
+      ctaText: 'Explore',
+      onPress: onCopyInvestorsPress,
+    },
+    {
+      id: '4',
+      title: 'Fund with Stablecoins',
+      description: 'Top up your account using USDC or USDT instantly',
+      icon: 'usdc-8',
+      gradient: ['#43E97B', '#38F9D7'],
+      ctaText: 'Fund Account',
+      onPress: onFundWithCryptoPress,
+    },
+  ];
+
+  return (
+    <View
+      className={`overflow-hidden ${className || ''}`}
+      {...props}
+    >
+      {/* Main Balance Display */}
+      <View className="px-4 pt-6 pb-4">
+        <View className="flex-row justify-between items-start">
+          <View>
+            <TouchableOpacity className='flex-row items-center gap-x-2'>
+              <Text className='text-[14px] text-[#000] font-body-bold leading-6'>Account 1</Text>
+              <ChevronDown size={16} fill="#000" strokeWidth={2} />
+            </TouchableOpacity>
+            <View className='items-start gap-x-2 mt-2'>
+             <Text className='text-[17px] font-body-medium text-gray-400'>Total Portfolio</Text>
+          <View className='flex-row items-center gap-x-2'>
+          <Text className="text-[40px] font-bold font-body-bold mb-1">
+              {maskValue(balance)}
+            </Text>
+            <TouchableOpacity 
+              onPress={toggleBalanceVisibility}
+              accessibilityLabel={isBalanceVisible ? "Hide balance" : "Show balance"}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              {isBalanceVisible ? (
+                <Eye size={24} color="#545454" strokeWidth={0.9} />
+              ) : (
+                <EyeOff size={24} color="#545454" strokeWidth={0.9} />
+              )}
+            </TouchableOpacity>
+          </View>
+            </View>
+           
+
+           <View className='flex-row items-center justify-between gap-x-4'>
+           <View className="flex-row items-center">
+              <Text className="text-base font-body-light text-red-600">
+                {maskValue(percentChange)} <Text className='text-[#000] font-body-bold'>{timeframe}</Text>
+              </Text>
+            </View>
+             
+             <View className='flex-row items-center gap-x-1'>
+             <Text className='text-base text-gray-400 font-body-light'>Buying Power:</Text>
+             <Text className='text-[#000] text-base font-body-bold'>{maskValue(buyingPower)}</Text>
+             </View>
+          
+           </View>
+           
+          </View>
+        </View>
+      </View>
+
+      {/* Action Buttons */}
+      <View className="flex-row justify-between px-[14px] pb-6">
+        <ActionButton
+          icon="shopping-basket"
+          label="Create"
+          bgColor="bg-[#F7F7F7]"
+          onPress={onCreateBasketPress}
+        />
+
+        <ActionButton
+          icon="arrow-down"
+          label="Top Up"
+          bgColor="bg-[#F7F7F7]"
+          onPress={onReceivePress}
+        />
+
+        <ActionButton
+          icon="arrow-up"
+          label="Withdraw"
+          bgColor="bg-[#F7F7F7]"
+          onPress={onWithdrawPress}
+        />
+
+        <ActionButton
+          icon="file-clock"
+          label="History"
+          bgColor="bg-[#F7F7F7]"
+          onPress={onHistoryPress}
+        />
+      </View>
+
+      {/* Action Slideshow */}
+      <ActionSlideshow 
+        slides={slides || defaultSlides}
+        autoPlay={true}
+        autoPlayInterval={5000}
+      />
+    </View>
+  );
+};
