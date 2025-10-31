@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { walletService } from '../api/services';
 
 export interface Token {
@@ -302,7 +303,8 @@ export const useWalletStore = create<WalletState & WalletActions>()(
     }),
     {
       name: 'wallet-storage',
-      storage: createJSONStorage(() => localStorage),
+      // Use AsyncStorage for React Native and create a JSON storage wrapper
+      storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         tokens: state.tokens,
         transactions: state.transactions,

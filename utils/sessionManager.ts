@@ -177,10 +177,19 @@ export class SessionManager {
       return;
     }
 
-    const { accessToken, refreshToken, isAuthenticated, passcodeSessionExpiresAt, checkTokenExpiry } = useAuthStore.getState();
+    const state = useAuthStore.getState();
+    const { accessToken, refreshToken, isAuthenticated, passcodeSessionExpiresAt, checkTokenExpiry, user } = state;
+    
+    console.log('[SessionManager] Initializing with state:', {
+      hasUser: !!user,
+      hasAccessToken: !!accessToken,
+      hasRefreshToken: !!refreshToken,
+      isAuthenticated,
+      hasPasscodeSession: !!passcodeSessionExpiresAt,
+    });
     
     if (!isAuthenticated || !accessToken || !refreshToken) {
-      console.log('[SessionManager] No active session to initialize');
+      console.log('[SessionManager] No active session to initialize - missing required tokens');
       return;
     }
 
@@ -282,10 +291,11 @@ export class SessionManager {
 
 // Auto-initialize on module load if there's an active session
 if (typeof window !== 'undefined') {
-  // Wait for store to hydrate from localStorage
+  // Wait for store to hydrate from AsyncStorage/localStorage.
+  // AsyncStorage hydration can be slower on mobile; 500ms gives zustand-persist time to load.
   setTimeout(() => {
     SessionManager.initialize();
-  }, 100);
+  }, 500);
 }
 
 export default SessionManager;

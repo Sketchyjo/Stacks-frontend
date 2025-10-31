@@ -45,11 +45,20 @@ export function useProtectedRoute() {
         const welcomed = await checkWelcomeStatus();
         setHasSeenWelcome(welcomed);
         
-        // Wait a bit for auth store to hydrate from AsyncStorage
+        // Wait for auth store to fully hydrate from AsyncStorage
         // This prevents race condition where tokens aren't loaded yet
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        if (authState.isAuthenticated && authState.accessToken) {
+        // Get fresh state after hydration
+        const freshState = useAuthStore.getState();
+        console.log('[Auth] State after hydration:', {
+          hasUser: !!freshState.user,
+          hasAccessToken: !!freshState.accessToken,
+          hasRefreshToken: !!freshState.refreshToken,
+          isAuthenticated: freshState.isAuthenticated,
+        });
+        
+        if (freshState.isAuthenticated && freshState.accessToken) {
           // Skip validation if user just authenticated (tokens are fresh)
           const { lastActivityAt } = useAuthStore.getState();
           const tokenAge = lastActivityAt 
@@ -146,20 +155,32 @@ export function useProtectedRoute() {
       return;
     }
 
+    // Get fresh state from store to ensure we have latest values after hydration
+    const freshAuthState = useAuthStore.getState();
+    const currentAuthState: AuthState = {
+      user: freshAuthState.user,
+      isAuthenticated: freshAuthState.isAuthenticated,
+      accessToken: freshAuthState.accessToken,
+      refreshToken: freshAuthState.refreshToken,
+      onboardingStatus: freshAuthState.onboardingStatus,
+      pendingVerificationEmail: freshAuthState.pendingVerificationEmail,
+    };
+    
     // Check if passcode session is valid for authenticated users
-    const hasValidPasscodeSession = authState.isAuthenticated 
+    const hasValidPasscodeSession = currentAuthState.isAuthenticated 
       ? !SessionManager.isPasscodeSessionExpired() 
       : false;
 
     const config = buildRouteConfig(segments, pathname);
-    const targetRoute = determineRoute(authState, config, hasSeenWelcome, hasValidPasscodeSession);
+    const targetRoute = determineRoute(currentAuthState, config, hasSeenWelcome, hasValidPasscodeSession);
     
     console.log('[Auth] Routing check:', {
       currentPath: pathname,
       targetRoute,
-      isAuthenticated: authState.isAuthenticated,
-      hasUser: !!authState.user,
-      hasToken: !!authState.accessToken,
+      isAuthenticated: currentAuthState.isAuthenticated,
+      hasUser: !!currentAuthState.user,
+      hasToken: !!currentAuthState.accessToken,
+      hasRefreshToken: !!currentAuthState.refreshToken,
       hasValidPasscodeSession,
     });
     

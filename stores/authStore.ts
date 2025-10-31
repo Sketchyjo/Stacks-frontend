@@ -254,9 +254,11 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         });
       },
 
-      // Passcode session management
+      // Passcode session management  
       clearPasscodeSession: () => {
-        console.log('[AuthStore] Clearing passcode session');
+        console.log('[AuthStore] Clearing passcode session (keeping user data and tokens for re-auth)');
+        // Only clear passcode session tokens, keep access/refresh tokens and isAuthenticated
+        // User still has valid 7-day tokens, they just need to verify passcode for UI access
         set({
           passcodeSessionToken: undefined,
           passcodeSessionExpiresAt: undefined,

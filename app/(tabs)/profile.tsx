@@ -1,10 +1,52 @@
-import { View, Text } from 'react-native';
+import { View, Text, ScrollView, RefreshControl } from 'react-native';
 import { useNavigation } from 'expo-router'
-import React, { useLayoutEffect } from 'react';
+import React, { useCallback, useLayoutEffect, useState, useMemo } from 'react';
+import { Chart, BalanceCard} from '@/components';
 import { Avatar } from '@rneui/base';
+import { usePortfolioOverview } from '@/api';
 
-const profile = () => {
-  const navigation = useNavigation();
+const Profile = () => {
+    const navigation = useNavigation();
+  const [refreshing, setRefreshing] = useState(false);
+  
+  // Fetch portfolio overview with automatic refetching
+  const { 
+    data: portfolio, 
+    isError, 
+    error,
+    refetch 
+  } = usePortfolioOverview();
+
+  // Pull to refresh handler
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
+
+  // Format currency with proper decimals
+  const formatCurrency = (value: string) => {
+    const num = parseFloat(value);
+    return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
+  };
+
+  // Format percentage with sign
+  const formatPercentage = (value: number) => {
+    const sign = value >= 0 ? '+' : '';
+    return `${sign}${value.toFixed(2)}%`;
+  };
+
+  // Only show error if no cached data exists and it's not a 404
+  const is404 = error?.error?.code === 'HTTP_404';
+  const showError = isError && !portfolio && !is404;
+  
+  // Use loading placeholder values when no data yet
+  const displayBalance = portfolio ? formatCurrency(portfolio.totalPortfolio) : '$---';
+  const displayPerformance = portfolio ? formatPercentage(portfolio.performanceLast30d) : '---%';
+  const displayBuyingPower = portfolio ? formatCurrency(portfolio.buyingPower) : '$---';
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -30,9 +72,55 @@ const profile = () => {
       },
     })
   }, [navigation]);
+  // Prepare chart data (7 points) based on portfolio total (flat series)
+  const chartValue = portfolio ? parseFloat(portfolio.totalPortfolio) || 0 : 0;
+  const chartData = useMemo(() => Array.from({ length: 7 }, () => ({ value: chartValue })), [chartValue]);
+
   return (
-    <View className="flex-1 items-center justify-center"></View>
+    <ScrollView 
+    className="flex-1"
+    refreshControl={
+      <RefreshControl 
+        refreshing={refreshing} 
+        onRefresh={onRefresh}
+        tintColor="#000"
+      />
+    }
+    >
+      <View className='px-[14px] '>
+       {/* Error Banner (only shows if no cached data) */}
+       {showError && (
+          <View className="mb-4 rounded-2xl bg-red-50 px-4 py-3">
+            <Text className="text-sm font-body-bold text-red-900">Unable to load portfolio</Text>
+            <Text className="mt-1 text-xs text-red-700">
+              {error?.error?.message || 'Please check your connection.'}
+            </Text>
+            <Text 
+              className="mt-2 text-xs font-body-bold text-red-600" 
+              onPress={() => refetch()}
+            >
+              Tap to retry
+            </Text>
+          </View>
+        )}
+
+         <BalanceCard
+            balance={displayBalance}
+            percentChange={displayPerformance}
+            buyingPower={displayBuyingPower}
+            timeframe="Last 30d"
+            className="rounded-x"
+          />
+        <Chart
+              data={chartData}
+              type="line"
+              width={900}
+              height={260}
+            />
+      </View>
+        
+    </ScrollView>
   );
 };
 
-export default profile;
+export default Profile;

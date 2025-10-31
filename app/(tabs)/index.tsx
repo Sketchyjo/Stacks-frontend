@@ -7,6 +7,8 @@ import { Bell, Grid3X3Icon, User } from 'lucide-react-native';
 import { TransactionList } from '@/components/molecules/TransactionList';
 import type { Transaction } from '@/components/molecules/TransactionItem';
 import { usePortfolioOverview } from '@/api/hooks';
+import { ActionButton } from '@/components';
+import { ActionSlideshow, SlideData } from '@/components/molecules/ActionSlideshow';
 
 const Dashboard = () => {
   const navigation = useNavigation();
@@ -111,6 +113,46 @@ const Dashboard = () => {
     []
   );
 
+   // Default slides with custom actions
+   const defaultSlides: SlideData[] = [
+    {
+      id: '1',
+      title: 'Verify Your Identity',
+      description: 'Complete KYC to unlock full trading features and higher limits',
+      icon: 'shield-person-6',
+      gradient: ['#667EEA', '#764BA2'],
+      ctaText: 'Verify Now',
+      onPress: () => {},
+    },
+    {
+      id: '2',
+      title: 'Get Your Dollar Card',
+      description: 'Physical or virtual card for seamless global spending',
+      icon: 'credit-card-8',
+      gradient: ['#F093FB', '#F5576C'],
+      ctaText: 'Get Card',
+      onPress: () => {},
+    },
+    {
+      id: '3',
+      title: 'Copy Top Investors',
+      description: 'Follow and replicate winning investment strategies',
+      icon: 'data-exploration-20',
+      gradient: ['#4FACFE', '#00F2FE'],
+      ctaText: 'Explore',
+      onPress: () => {},
+    },
+    {
+      id: '4',
+      title: 'Fund with Stablecoins',
+      description: 'Top up your account using USDC or USDT instantly',
+      icon: 'usdc-8',
+      gradient: ['#43E97B', '#38F9D7'],
+      ctaText: 'Fund Account',
+      onPress: () => {},
+    },
+  ];
+
   // Only show error if no cached data exists and it's not a 404
   const is404 = error?.error?.code === 'HTTP_404';
   const showError = isError && !portfolio && !is404;
@@ -156,11 +198,45 @@ const Dashboard = () => {
             buyingPower={displayBuyingPower}
             timeframe="Last 30d"
             className="rounded-x"
-            onReceivePress={() => router.push('/deposit')}
-            onWithdrawPress={() => router.push('/withdraw')}
-            onCreateBasketPress={() => router.push('/basket/create')}
           />
+
+      <View className="flex-row justify-between px-[14px] pb-6">
+        <ActionButton
+          icon="shopping-basket"
+          label="Create"
+          bgColor="bg-[#F7F7F7]"
+          onPress={() => router.push('/basket/create')}
+        />
+
+        <ActionButton
+          icon="arrow-down"
+          label="Top Up"
+          bgColor="bg-[#F7F7F7]"
+          onPress={() => router.push('/deposit')}
+        />
+
+        <ActionButton
+          icon="arrow-up"
+          label="Withdraw"
+          bgColor="bg-[#F7F7F7]"
+          onPress={() => router.push('/withdraw')}
+        />
+
+        <ActionButton
+          icon="file-clock"
+          label="History"
+          bgColor="bg-[#F7F7F7]"
+          // onPress={onHistoryPress}
+        />
+      </View>
         </View>
+
+          {/* Action Slideshow */}
+      <ActionSlideshow 
+        slides={defaultSlides}
+        autoPlay={true}
+        autoPlayInterval={5000}
+      />
 
         {/* My Baskets Section */}
         <View className="mb-6">
