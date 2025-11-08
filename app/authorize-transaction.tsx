@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Icon } from '@/components/atoms/Icon';
 import { ArrowLeft } from 'lucide-react-native';
+import { useVerifyPasscode } from '@/api/hooks';
 
 const BACKSPACE_KEY = 'backspace';
 
@@ -29,7 +30,10 @@ export default function AuthorizeTransactionScreen() {
   const [passcode, setPasscode] = useState('');
   const [showPasscode, setShowPasscode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const PIN_LENGTH = 6;
+  const [error, setError] = useState('');
+  const PIN_LENGTH = 4;
+
+  const verifyPasscodeMutation = useVerifyPasscode();
 
   const handleKeypadPress = useCallback(
     (key: KeypadKey) => {
@@ -55,17 +59,33 @@ export default function AuthorizeTransactionScreen() {
   );
 
   const handlePasscodeSubmit = async (code: string) => {
+    if (!code || code.length !== PIN_LENGTH) {
+      setError('Please enter a valid PIN');
+      return;
+    }
+
     setIsLoading(true);
-    
-    // TODO: Implement passcode verification API call
-    // For now, simulate API call
-    setTimeout(() => {
-      console.log('Passcode submitted:', code);
-      console.log('Transaction details:', { transactionId, amount, type, recipient });
+    setError('');
+
+    try {
+      const result = await verifyPasscodeMutation.mutateAsync({ passcode: code });
+
+      if (result.verified) {
+        console.log('Passcode verified, transaction authorized:', { transactionId, amount, type, recipient });
+        // TODO: Call transaction authorization API here
+        router.replace('/transaction-success');
+      } else {
+        setError('Invalid passcode. Please try again.');
+        setPasscode('');
+      }
+    } catch (error: any) {
+      console.error('[AuthorizeTransaction] Passcode verification failed:', error);
+      const errorMessage = error?.error?.message || error?.message || 'Failed to verify passcode. Please try again.';
+      setError(errorMessage);
+      setPasscode('');
+    } finally {
       setIsLoading(false);
-      // Navigate to success or error state
-      // router.replace('/transaction-success');
-    }, 500);
+    }
   };
 
   const handleBack = () => {

@@ -3,10 +3,12 @@ import React, { useLayoutEffect, useMemo, useState, useCallback } from 'react';
 import { router, useNavigation } from 'expo-router';
 import { BalanceCard } from '@/components/molecules/BalanceCard';
 import { BasketItemCard } from '@/components/molecules/BasketItemCard';
-import { Bell, Grid3X3Icon, User } from 'lucide-react-native';
+import { ArrowDown, Bell, Grid3X3Icon, PlusIcon, User } from 'lucide-react-native';
 import { TransactionList } from '@/components/molecules/TransactionList';
 import type { Transaction } from '@/components/molecules/TransactionItem';
 import { usePortfolioOverview } from '@/api/hooks';
+import { Button } from '../../components/ui';
+import { ActionSlideshow, SlideData } from '@/components/molecules/ActionSlideshow';
 
 const Dashboard = () => {
   const navigation = useNavigation();
@@ -111,6 +113,46 @@ const Dashboard = () => {
     []
   );
 
+   // Default slides with custom actions
+   const defaultSlides: SlideData[] = [
+    {
+      id: '1',
+      title: 'Verify Your Identity',
+      description: 'Complete KYC to unlock full trading features and higher limits',
+      icon: 'shield-person-6',
+      gradient: ['#667EEA', '#764BA2'],
+      ctaText: 'Verify Now',
+      onPress: () => {},
+    },
+    {
+      id: '2',
+      title: 'Get Your Dollar Card',
+      description: 'Physical or virtual card for seamless global spending',
+      icon: 'credit-card-8',
+      gradient: ['#F093FB', '#F5576C'],
+      ctaText: 'Get Card',
+      onPress: () => {},
+    },
+    {
+      id: '3',
+      title: 'Copy Top Investors',
+      description: 'Follow and replicate winning investment strategies',
+      icon: 'data-exploration-20',
+      gradient: ['#4FACFE', '#00F2FE'],
+      ctaText: 'Explore',
+      onPress: () => {},
+    },
+    {
+      id: '4',
+      title: 'Fund with Stablecoins',
+      description: 'Top up your account using USDC or USDT instantly',
+      icon: 'usdc-8',
+      gradient: ['#43E97B', '#38F9D7'],
+      ctaText: 'Fund Account',
+      onPress: () => {},
+    },
+  ];
+
   // Only show error if no cached data exists and it's not a 404
   const is404 = error?.error?.code === 'HTTP_404';
   const showError = isError && !portfolio && !is404;
@@ -156,11 +198,20 @@ const Dashboard = () => {
             buyingPower={displayBuyingPower}
             timeframe="Last 30d"
             className="rounded-x"
-            onReceivePress={() => router.push('/deposit')}
-            onWithdrawPress={() => router.push('/withdraw')}
-            onCreateBasketPress={() => router.push('/basket/create')}
           />
+
+      <View className="flex-row w-[80%] gap-3 mt-4">
+       <Button title='Add funds' onPress={( ) => router.navigate("/deposit")} leftIcon={<PlusIcon size={24} color="white" />}  className="w-[40%]" />
+       <Button title='Withdraw' onPress={( ) => router.navigate("/withdraw")} leftIcon={<ArrowDown size={24} color="black" />} variant='secondary' className="w-[40%]" />
+      </View>
         </View>
+
+          {/* Action Slideshow */}
+      <ActionSlideshow 
+        slides={defaultSlides}
+        autoPlay={true}
+        autoPlayInterval={5000}
+      />
 
         {/* My Baskets Section */}
         <View className="mb-6">

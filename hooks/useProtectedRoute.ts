@@ -38,6 +38,9 @@ export function useProtectedRoute() {
   // Initialize app: validate token and check welcome status
   // Runs on every mount (app reload) and re-validates routing
   useEffect(() => {
+    const HYDRATION_DELAY_MS = 500;
+    const TOKEN_FRESHNESS_THRESHOLD_MS = 10000; // 10 seconds
+
     const initializeApp = async () => {
       console.log('[Auth] App initializing - checking routing...');
       
@@ -45,23 +48,35 @@ export function useProtectedRoute() {
         const welcomed = await checkWelcomeStatus();
         setHasSeenWelcome(welcomed);
         
-        // Wait a bit for auth store to hydrate from AsyncStorage
+        // Wait for auth store to fully hydrate from AsyncStorage
         // This prevents race condition where tokens aren't loaded yet
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, HYDRATION_DELAY_MS));
         
-        if (authState.isAuthenticated && authState.accessToken) {
-          // Skip validation if user just authenticated (tokens are fresh)
-          const { lastActivityAt } = useAuthStore.getState();
+        // Get fresh state after hydration
+        const freshState = useAuthStore.getState();
+        const hasValidAuthData = freshState.isAuthenticated && freshState.accessToken;
+        
+        console.log('[Auth] State after hydration:', {
+          hasUser: !!freshState.user,
+          hasAccessToken: !!freshState.accessToken,
+          hasRefreshToken: !!freshState.refreshToken,
+          isAuthenticated: freshState.isAuthenticated,
+        });
+        
+        if (hasValidAuthData) {
+          // Calculate token age to determine if validation is needed
+          const { lastActivityAt } = freshState;
           const tokenAge = lastActivityAt 
             ? Date.now() - new Date(lastActivityAt).getTime() 
             : Infinity;
           
-          // Only validate if token is older than 10 seconds (not just issued)
-          if (tokenAge > 10000) {
+          const isTokenFresh = tokenAge <= TOKEN_FRESHNESS_THRESHOLD_MS;
+          
+          // Only validate if token is older than threshold (not just issued)
+          if (!isTokenFresh) {
             const isValid = await validateAccessToken();
             if (!isValid) {
               console.log('[Auth] Token invalid on app load');
-              // Let SessionManager handle this - it will clear appropriately
               SessionManager.handleSessionExpired();
             }
           } else {
@@ -103,8 +118,11 @@ export function useProtectedRoute() {
         // Reset navigation ref to allow routing logic to run again
         hasNavigatedRef.current = false;
         
+        // Get fresh state from store to avoid stale closure values
+        const freshState = useAuthStore.getState();
+        
         // Check if passcode session expired/cleared
-        if (authState.isAuthenticated && SessionManager.isPasscodeSessionExpired()) {
+        if (freshState.isAuthenticated && SessionManager.isPasscodeSessionExpired()) {
           console.log('[Auth] Passcode session expired - need to re-authenticate with passcode');
           SessionManager.handlePasscodeSessionExpired();
           // Navigation will happen automatically in the routing effect
@@ -112,13 +130,12 @@ export function useProtectedRoute() {
         }
         
         // Update last activity since user is now active
-        if (authState.isAuthenticated) {
-          useAuthStore.getState().updateLastActivity();
+        if (freshState.isAuthenticated) {
+          freshState.updateLastActivity();
         }
         
         // Check if 7-day token has expired
-        const { checkTokenExpiry } = useAuthStore.getState();
-        if (authState.isAuthenticated && checkTokenExpiry()) {
+        if (freshState.isAuthenticated && freshState.checkTokenExpiry()) {
           console.log('[Auth] 7-day token expired after app resume');
           SessionManager.handleSessionExpired();
           return;
@@ -131,7 +148,7 @@ export function useProtectedRoute() {
     return () => {
       subscription.remove();
     };
-  }, [authState.isAuthenticated, authState.accessToken]);
+  }, []); // No dependencies needed - we fetch fresh state inside the handler
 
   // Handle routing based on auth state
   // Runs on mount, auth changes, and when app comes to foreground
@@ -146,20 +163,32 @@ export function useProtectedRoute() {
       return;
     }
 
+    // Get fresh state from store to ensure we have latest values after hydration
+    const freshAuthState = useAuthStore.getState();
+    const currentAuthState: AuthState = {
+      user: freshAuthState.user,
+      isAuthenticated: freshAuthState.isAuthenticated,
+      accessToken: freshAuthState.accessToken,
+      refreshToken: freshAuthState.refreshToken,
+      onboardingStatus: freshAuthState.onboardingStatus,
+      pendingVerificationEmail: freshAuthState.pendingVerificationEmail,
+    };
+    
     // Check if passcode session is valid for authenticated users
-    const hasValidPasscodeSession = authState.isAuthenticated 
+    const hasValidPasscodeSession = currentAuthState.isAuthenticated 
       ? !SessionManager.isPasscodeSessionExpired() 
       : false;
 
     const config = buildRouteConfig(segments, pathname);
-    const targetRoute = determineRoute(authState, config, hasSeenWelcome, hasValidPasscodeSession);
+    const targetRoute = determineRoute(currentAuthState, config, hasSeenWelcome, hasValidPasscodeSession);
     
     console.log('[Auth] Routing check:', {
       currentPath: pathname,
       targetRoute,
-      isAuthenticated: authState.isAuthenticated,
-      hasUser: !!authState.user,
-      hasToken: !!authState.accessToken,
+      isAuthenticated: currentAuthState.isAuthenticated,
+      hasUser: !!currentAuthState.user,
+      hasToken: !!currentAuthState.accessToken,
+      hasRefreshToken: !!currentAuthState.refreshToken,
       hasValidPasscodeSession,
     });
     

@@ -9,7 +9,8 @@ import {
 import { Icon } from '../atoms/Icon';
 import { ArrowDown, ArrowDown01, ChevronDown, Eye, EyeOff } from 'lucide-react-native';
 import { useUIStore } from '@/stores';
-import { ActionSlideshow, SlideData } from './ActionSlideshow';
+import { ActionSlideshow } from './ActionSlideshow';
+import { sanitizeNumber } from '@/utils/sanitizeInput';
 
 export interface BalanceCardProps extends ViewProps {
   balance?: string;
@@ -17,11 +18,6 @@ export interface BalanceCardProps extends ViewProps {
   timeframe?: string;
   currency?: string;
   buyingPower?: string;
-  onWithdrawPress?: () => void;
-  onReceivePress?: () => void;
-  onCreateBasketPress?: () => void;
-  onHistoryPress?: () => void;
-  slides?: SlideData[];
   onVerifyPress?: () => void;
   onGetCardPress?: () => void;
   onCopyInvestorsPress?: () => void;
@@ -29,35 +25,7 @@ export interface BalanceCardProps extends ViewProps {
   className?: string;
 }
 
-const ActionButton = ({
-  icon,
-  label,
-  onPress,
-  library = 'lucide',
-  bgColor = 'bg-secondary',
-}: {
-  icon: string;
-  label: string;
-  onPress?: () => void;
-  library?: string;
-  bgColor?: string;
-}) => (
-  <TouchableOpacity 
-    className="items-center justify-center"
-    onPress={onPress}
-    accessibilityLabel={label}
-  >
-    <View className={`w-[60px] h-[60px] rounded-full ${bgColor} items-center justify-center mb-1`}>
-      <Icon
-        library={library as any}
-        name={icon}
-        size={28}
-        strokeWidth={2}
-      />
-    </View>
-    <Text className="text-[14px] font-body-medium">{label}</Text>
-  </TouchableOpacity>
-);
+
 
 export const BalanceCard: React.FC<BalanceCardProps> = ({
   balance = '$0.00',
@@ -65,11 +33,6 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
   timeframe = '1D',
   currency = 'USD',
   buyingPower = '$0.00',
-  onWithdrawPress,
-  onReceivePress,
-  onCreateBasketPress,
-  onHistoryPress,
-  slides,
   onVerifyPress,
   onGetCardPress,
   onCopyInvestorsPress,
@@ -82,50 +45,11 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
 
   // Helper function to mask balance values
   const maskValue = (value: string) => {
-    if (isBalanceVisible) return value;
+    const sanitized = sanitizeNumber(String(value));
+    if (isBalanceVisible) return sanitized;
     // Replace numbers with dashes, keep currency symbol
-    return value.replace(/[\d,\.]+/g, (match) => '−'.repeat(Math.min(match.length, 6)));
+    return sanitized.replace(/[\d,\.]+/g, (match) => '−'.repeat(Math.min(match.length, 6)));
   };
-
-  // Default slides with custom actions
-  const defaultSlides: SlideData[] = [
-    {
-      id: '1',
-      title: 'Verify Your Identity',
-      description: 'Complete KYC to unlock full trading features and higher limits',
-      icon: 'shield-person-6',
-      gradient: ['#667EEA', '#764BA2'],
-      ctaText: 'Verify Now',
-      onPress: onVerifyPress,
-    },
-    {
-      id: '2',
-      title: 'Get Your Dollar Card',
-      description: 'Physical or virtual card for seamless global spending',
-      icon: 'credit-card-8',
-      gradient: ['#F093FB', '#F5576C'],
-      ctaText: 'Get Card',
-      onPress: onGetCardPress,
-    },
-    {
-      id: '3',
-      title: 'Copy Top Investors',
-      description: 'Follow and replicate winning investment strategies',
-      icon: 'data-exploration-20',
-      gradient: ['#4FACFE', '#00F2FE'],
-      ctaText: 'Explore',
-      onPress: onCopyInvestorsPress,
-    },
-    {
-      id: '4',
-      title: 'Fund with Stablecoins',
-      description: 'Top up your account using USDC or USDT instantly',
-      icon: 'usdc-8',
-      gradient: ['#43E97B', '#38F9D7'],
-      ctaText: 'Fund Account',
-      onPress: onFundWithCryptoPress,
-    },
-  ];
 
   return (
     <View
@@ -133,7 +57,7 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
       {...props}
     >
       {/* Main Balance Display */}
-      <View className="px-4 pt-6 pb-4">
+      <View className="pt-6 pb-4">
         <View className="flex-row justify-between items-start">
           <View>
             <TouchableOpacity className='flex-row items-center gap-x-2'>
@@ -178,44 +102,7 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
           </View>
         </View>
       </View>
-
-      {/* Action Buttons */}
-      <View className="flex-row justify-between px-[14px] pb-6">
-        <ActionButton
-          icon="shopping-basket"
-          label="Create"
-          bgColor="bg-[#F7F7F7]"
-          onPress={onCreateBasketPress}
-        />
-
-        <ActionButton
-          icon="arrow-down"
-          label="Top Up"
-          bgColor="bg-[#F7F7F7]"
-          onPress={onReceivePress}
-        />
-
-        <ActionButton
-          icon="arrow-up"
-          label="Withdraw"
-          bgColor="bg-[#F7F7F7]"
-          onPress={onWithdrawPress}
-        />
-
-        <ActionButton
-          icon="file-clock"
-          label="History"
-          bgColor="bg-[#F7F7F7]"
-          onPress={onHistoryPress}
-        />
-      </View>
-
-      {/* Action Slideshow */}
-      <ActionSlideshow 
-        slides={slides || defaultSlides}
-        autoPlay={true}
-        autoPlayInterval={5000}
-      />
+   
     </View>
   );
 };

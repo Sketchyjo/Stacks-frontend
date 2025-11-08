@@ -38,6 +38,9 @@ export const RoundUpAccumulation: React.FC<RoundUpAccumulationProps> = ({
   };
 
   const progressPercentage = getProgressPercentage();
+  const hasGoal = monthlyGoal && monthlyGoal > 0;
+  const isGoalAchieved = hasGoal && progressPercentage >= 100;
+  const canWithdraw = totalSaved > 0;
 
   return (
     <TouchableOpacity
@@ -91,7 +94,7 @@ export const RoundUpAccumulation: React.FC<RoundUpAccumulationProps> = ({
         </View>
 
         <View style={{
-          backgroundColor: colors.accent.limeGreen + '20', // 20% opacity
+          backgroundColor: `${colors.accent.limeGreen}20`,
           borderRadius: borderRadius.full,
           padding: spacing.md,
         }}>
@@ -105,7 +108,7 @@ export const RoundUpAccumulation: React.FC<RoundUpAccumulationProps> = ({
       </View>
 
       {/* Progress Bar (if goal is set) */}
-      {monthlyGoal && monthlyGoal > 0 && (
+      {hasGoal && (
         <View style={{ marginBottom: spacing.lg }}>
           <View style={{ 
             flexDirection: 'row', 
@@ -172,7 +175,7 @@ export const RoundUpAccumulation: React.FC<RoundUpAccumulationProps> = ({
 
       {/* Action Buttons */}
       <View style={{ flexDirection: 'row', gap: spacing.md }}>
-        {onWithdraw && totalSaved > 0 && (
+        {onWithdraw && canWithdraw && (
           <TouchableOpacity
             style={{
               flex: 1,
@@ -213,7 +216,7 @@ export const RoundUpAccumulation: React.FC<RoundUpAccumulationProps> = ({
           <TouchableOpacity
             style={{
               flex: 1,
-              backgroundColor: monthlyGoal ? colors.surface.light : colors.primary.lavender,
+              backgroundColor: hasGoal ? colors.surface.light : colors.primary.lavender,
               borderRadius: borderRadius.lg,
               paddingVertical: spacing.md,
               paddingHorizontal: spacing.lg,
@@ -225,10 +228,10 @@ export const RoundUpAccumulation: React.FC<RoundUpAccumulationProps> = ({
             testID={`${testID}-set-goal`}
           >
             <Icon
-              name={monthlyGoal ? "settings" : "target"}
+              name={hasGoal ? "settings" : "target"}
               library="ionicons"
               size={16}
-              color={monthlyGoal ? colors.text.primary : colors.text.primary}
+              color={colors.text.primary}
               style={{ marginRight: spacing.xs }}
             />
             <Text
@@ -238,19 +241,19 @@ export const RoundUpAccumulation: React.FC<RoundUpAccumulationProps> = ({
                   fontSize: typography.styles.label.size,
                   fontWeight: typography.styles.label.weight,
                 },
-                { color: monthlyGoal ? colors.text.primary : colors.text.primary }
+                { color: colors.text.primary }
               ]}
             >
-              {monthlyGoal ? 'Edit Goal' : 'Set Goal'}
+              {hasGoal ? 'Edit Goal' : 'Set Goal'}
             </Text>
           </TouchableOpacity>
         )}
       </View>
 
       {/* Achievement Badge */}
-      {monthlyGoal && progressPercentage >= 100 && (
+      {isGoalAchieved && (
         <View style={{
-          backgroundColor: colors.accent.limeGreen + '20', // 20% opacity
+          backgroundColor: `${colors.accent.limeGreen}20`,
           borderRadius: borderRadius.md,
           padding: spacing.md,
           marginTop: spacing.md,
@@ -287,7 +290,7 @@ export const RoundUpAccumulation: React.FC<RoundUpAccumulationProps> = ({
                 { color: colors.text.secondary }
               ]}
             >
-              You've reached your monthly savings goal
+              You&apos;ve reached your monthly savings goal
             </Text>
           </View>
         </View>

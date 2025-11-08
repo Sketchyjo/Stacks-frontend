@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import * as LocalAuthentication from 'expo-local-authentication';
 import { Icon } from '@/components/atoms/Icon';
 import { Fingerprint,  Trash } from 'lucide-react-native';
 import { useAuthStore } from '@/stores/authStore';
@@ -73,39 +74,87 @@ export default function LoginPasscodeScreen() {
   );
 
   const handleBiometricAuth = async () => {
-    // TODO: Implement biometric authentication
-    console.log('Biometric authentication');
+    try {
+      // Check if biometric authentication is available
+      const isBiometricAvailable = await LocalAuthentication.hasHardwareAsync();
+      const isBiometricEnrolled = await LocalAuthentication.isEnrolledAsync();
+
+      if (!isBiometricAvailable || !isBiometricEnrolled) {
+        setError('Biometric authentication not available or not enrolled');
+        return;
+      }
+
+      // Authenticate using biometrics
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Authenticate to access your account',
+        fallbackLabel: 'Use passcode',
+        cancelLabel: 'Cancel',
+        disableDeviceFallback: false,
+      });
+
+      if (result.success) {
+        // Biometric success - simulate passcode verification (since biometric replaces passcode)
+        // In a real app, you might have a separate flow or verify with backend
+        handlePasscodeSubmit('biometric');
+      } else {
+        setError('Biometric authentication failed');
+      }
+    } catch (error) {
+      console.error('Biometric authentication error:', error);
+      setError('Biometric authentication failed');
+    }
   };
 
   const handlePasscodeSubmit = (code: string) => {
+    if (!code || code.length !== 4) {
+      setError('Please enter a valid 4-digit PIN');
+      setPasscode('');
+      return;
+    }
+
     setError('');
     
     verifyPasscode(
       { passcode: code },
       {
         onSuccess: async (response) => {
-          console.log('[LoginPasscode] Passcode verified successfully');
-          
-          // Schedule passcode session expiry monitoring
-          if (response.passcodeSessionExpiresAt) {
-            SessionManager.schedulePasscodeSessionExpiry(response.passcodeSessionExpiresAt);
+          try {
+            console.log('[LoginPasscode] Passcode verified successfully');
+            
+            if (!response.verified) {
+              setError('Passcode verification failed');
+              setPasscode('');
+              return;
+            }
+            
+            // Schedule passcode session expiry monitoring
+            if (response.passcodeSessionExpiresAt) {
+              SessionManager.schedulePasscodeSessionExpiry(response.passcodeSessionExpiresAt);
+            }
+            
+            // Wait for state to be fully persisted before navigation
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Verify token is set before navigating
+            const token = useAuthStore.getState().accessToken;
+            if (!token) {
+              console.warn('[LoginPasscode] Access token not found after verification');
+              setError('Authentication failed. Please try again.');
+              setPasscode('');
+              return;
+            }
+            
+            // Navigate to main app
+            router.replace('/(tabs)');
+          } catch (error: any) {
+            console.error('[LoginPasscode] Error during success handling:', error);
+            setError('An error occurred. Please try again.');
+            setPasscode('');
           }
-          
-          // Wait for state to be fully persisted before navigation
-          // This ensures the access token is available when portfolio/wallet APIs are called
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
-          // Verify token is set before navigating
-          const token = useAuthStore.getState().accessToken;
-          if (!token) {
-            console.warn('[LoginPasscode] Access token not found after verification');
-          }
-          
-          // Navigate to main app
-          router.replace('/(tabs)');
         },
         onError: (err: any) => {
-          setError(err?.error?.message || 'Incorrect PIN. Please try again.');
+          const errorMessage = err?.error?.message || err?.message || 'Incorrect PIN. Please try again.';
+          setError(errorMessage);
           setPasscode('');
         },
       }

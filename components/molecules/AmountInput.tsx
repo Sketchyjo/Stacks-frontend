@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react'
 import { View, Text, TouchableOpacity, ViewProps, Animated } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Icon } from '../atoms/Icon';
+import { sanitizeNumber } from '@/utils/sanitizeInput';
 
 const BACKSPACE_KEY = 'backspace';
 
@@ -354,7 +355,7 @@ export const AmountInput: React.FC<AmountInputProps> = ({
           <View className="mt-6 flex-row items-center gap-x-2">
             {tokenIcon}
             <Text className="text-base font-body-medium text-gray-700">
-              {tokenInfo}
+              {sanitizeNumber(tokenInfo)}
             </Text>
           </View>
         )}
@@ -362,12 +363,12 @@ export const AmountInput: React.FC<AmountInputProps> = ({
         {/* Error/Success Message */}
         {errorText && (
           <Text className="mt-6 text-sm font-body-medium text-red-500">
-            {errorText}
+            {String(errorText)}
           </Text>
         )}
         {successText && (
           <Text className="mt-6 text-sm font-body-medium text-green-500">
-            {successText}
+            {String(successText)}
           </Text>
         )}
       </View>

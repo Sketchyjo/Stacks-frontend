@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import {
   TouchableOpacity,
   TouchableOpacityProps,
@@ -9,14 +9,14 @@ import {
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'indigo';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
 }
 
-export const Button: React.FC<ButtonProps> = ({
+export const Button = forwardRef<View, ButtonProps>(({
   title,
   variant = 'primary',
   size = 'lg',
@@ -26,13 +26,15 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   className = '',
   ...props
-}) => {
+}, ref) => {
   const getVariantStyles = () => {
     switch (variant) {
       case 'secondary':
         return 'bg-gray-100 border border-gray-200';
       case 'outline':
         return 'bg-transparent border-2 border-gray-300';
+      case 'indigo':
+        return 'bg-indigo-500 shadow-md';
       default:
         return 'bg-gray-900 border-2 border-gray-900';
     }
@@ -73,13 +75,14 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <TouchableOpacity
+      ref={ref}
       disabled={disabled || loading}
       className={`w-full flex-row items-center justify-center rounded-full ${getVariantStyles()} ${getSizeStyles()} ${
         disabled ? 'opacity-50' : ''
       } ${className}`}
       {...props}>
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? '#fff' : '#111'} size="small" />
+        <ActivityIndicator color={variant === 'primary' || variant === 'indigo' ? '#fff' : '#111'} size="small" />
       ) : (
         <View className="flex-row items-center">
           {leftIcon && <View className="mr-2">{leftIcon}</View>}
@@ -89,4 +92,6 @@ export const Button: React.FC<ButtonProps> = ({
       )}
     </TouchableOpacity>
   );
-};
+});
+
+Button.displayName = 'Button';

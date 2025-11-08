@@ -5,6 +5,8 @@
 
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosRequestConfig } from 'axios';
 import type { ApiError, ApiResponse } from './types';
+import { safeLog, safeError } from '../utils/logSanitizer';
+import { API_CONFIG } from './config';
 
 /**
  * Custom Axios instance type that returns unwrapped data
@@ -18,21 +20,18 @@ interface ApiClient extends Omit<AxiosInstance, 'get' | 'post' | 'put' | 'patch'
   delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>;
 }
 
-// Environment-based configuration
-const API_CONFIG = {
-  baseURL: process.env.API_BASE_URL || 'http://localhost:8080/api',
-  timeout: parseInt(process.env.API_TIMEOUT || '30000'),
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-};
-
 /**
  * Create base axios instance
  * Cast to ApiClient type since our interceptor unwraps responses
  */
-const apiClient = axios.create(API_CONFIG) as ApiClient;
+const apiClient = axios.create({
+  baseURL: API_CONFIG.baseURL,
+  timeout: API_CONFIG.timeout,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+}) as ApiClient;
 
 /**
  * Request interceptor
@@ -51,13 +50,12 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${accessToken}`;
     } else if (__DEV__ && isAuthenticated) {
       // Warn if authenticated but no token (should not happen)
-      console.warn(`[API Client] User is authenticated but no accessToken found for ${config.url}`);
-      // Also log the full auth state for debugging
+      safeLog('[API Client] User is authenticated but no accessToken found for', config.url);
       const fullState = useAuthStore.getState();
-      console.warn('[API Client] Full auth state:', {
+      safeLog('[API Client] Full auth state:', {
         hasUser: !!fullState.user,
-        accessToken: accessToken ? `${accessToken.substring(0, 20)}...` : null,
-        refreshToken: fullState.refreshToken ? `${fullState.refreshToken.substring(0, 20)}...` : null,
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!fullState.refreshToken,
         isAuthenticated: fullState.isAuthenticated,
         lastActivityAt: fullState.lastActivityAt,
       });
@@ -69,20 +67,12 @@ apiClient.interceptors.request.use(
       updateLastActivity();
     }
 
-    // Log request in development
-    if (__DEV__) {
-      console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
-        params: config.params,
-        data: config.data,
-        hasToken: !!accessToken,
-        isAuthenticated,
-      });
-    }
+    // Log request in development (removed for production)
 
     return config;
   },
   (error: AxiosError) => {
-    console.error('[API Request Error]', error);
+    safeError('[API Request Error]', error);
     return Promise.reject(error);
   }
 );
@@ -95,10 +85,7 @@ apiClient.interceptors.request.use(
  */
 apiClient.interceptors.response.use(
   (response) => {
-    // Log response in development
-    if (__DEV__) {
-      console.log(`[API Response] ${response.config.url}`, response.data);
-    }
+    // Log response in development (removed for production)
 
     // Return the data directly for successful responses
     // The backend returns data directly without wrapping in { data: ... }
@@ -135,13 +122,13 @@ apiClient.interceptors.response.use(
               return axios.request(originalRequest);
             }
           } else {
-            console.warn('[API Client] No refresh token available, cannot refresh session');
+            safeLog('[API Client] No refresh token available, cannot refresh session');
             // No refresh token means full re-authentication is needed
             return Promise.reject(error);
           }
         } catch (refreshError) {
           // Refresh failed, clear auth state
-          console.warn('[API Client] Token refresh failed, clearing session');
+          safeLog('[API Client] Token refresh failed, clearing session');
           const { useAuthStore } = require('../stores/authStore');
           const { reset } = useAuthStore.getState();
           reset();
@@ -152,7 +139,7 @@ apiClient.interceptors.response.use(
 
     // Log error in development
     if (__DEV__) {
-      console.error('[API Error]', {
+      safeError('[API Error]', {
         url: error.config?.url,
         method: error.config?.method,
         status: error.response?.status,
@@ -173,6 +160,7 @@ apiClient.interceptors.response.use(
 function transformError(error: AxiosError<any>): ApiError {
   // Network error (no response)
   if (!error.response) {
+    safeError('[API Client] Network error:', error.message);
     return {
       success: false,
       error: {
@@ -184,6 +172,7 @@ function transformError(error: AxiosError<any>): ApiError {
   }
 
   const responseData = error.response.data;
+  const status = error.response.status;
 
   // Backend error response with code and message
   if (responseData && responseData.code && responseData.message) {
@@ -207,12 +196,31 @@ function transformError(error: AxiosError<any>): ApiError {
     };
   }
 
+  // Handle specific HTTP status codes with user-friendly messages
+  let message = responseData?.message || error.message;
+  
+  if (status === 400) {
+    message = message || 'Invalid request. Please check your input.';
+  } else if (status === 401) {
+    message = message || 'Authentication required. Please log in.';
+  } else if (status === 403) {
+    message = message || 'Access denied. You do not have permission.';
+  } else if (status === 404) {
+    message = message || 'Resource not found.';
+  } else if (status === 429) {
+    message = message || 'Too many requests. Please try again later.';
+  } else if (status >= 500) {
+    message = message || 'Server error. Please try again later.';
+  } else {
+    message = message || `Request failed with status ${status}`;
+  }
+
   // HTTP error without specific error structure
   return {
     success: false,
     error: {
-      code: `HTTP_${error.response.status}`,
-      message: responseData?.message || error.message || `Request failed with status ${error.response.status}`,
+      code: `HTTP_${status}`,
+      message,
     },
     timestamp: new Date().toISOString(),
   };
