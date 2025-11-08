@@ -247,27 +247,27 @@ const SlideCard: React.FC<SlideCardProps> = ({ slide, index, scrollX }) => {
         transform: [{ scale }],
       }}
     >
-    <View className="p-6 h-[150px] w-[100%] bg-[#000] rounded-xl mt-1 flex-row justify-between">
-          {/* Content */}
-          <View className="flex-1 justify-center">
-            <Text className="text-2xl font-body-bold text-white mb-2">
-              {slide.title}
-            </Text>
-            <Text className="text-base font-body-regular text-white/90 leading-5">
-              {slide.description}
-            </Text>
-          </View>
-              {/* Icon */}
-              <View className="w-[60px] h-[60px]  rounded-2xl items-center justify-center mb-4">
-            <SvgIcon
-              name={slide.icon}
-              width={60}
-              height={60}
-              color="blue"
-            />
-          </View>
+      <View className="p-6 h-[150px] bg-[#000] rounded-xl mt-1 flex-row items-center gap-4">
+        {/* Content */}
+        <View className="flex-1 justify-center pr-2">
+          <Text className="text-2xl font-body-bold text-white mb-2">
+            {slide.title}
+          </Text>
+          <Text className="text-base font-body-regular text-white/90 leading-5">
+            {slide.description}
+          </Text>
         </View>
         
+        {/* Icon */}
+        <View className="w-[80px] h-[80px] items-center justify-center">
+          <SvgIcon
+            name={slide.icon}
+            width={80}
+            height={80}
+            color="white"
+          />
+        </View>
+      </View>
     </Animated.View>
   );
 };

@@ -13,6 +13,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { cards, onBoard1, onBoard2, onBoard3, onBoard4 } from '../assets/images';
 import { Button } from '@/components/ui';
+import { safeLog } from '@/utils/logSanitizer';
 
 const { width, height } = Dimensions.get('window');
 
@@ -156,7 +157,7 @@ export default function App() {
         style={item.imageStyle}
         className="absolute -bottom-0 "
         resizeMode="cover"
-        onError={(e) => console.log('Image failed to load', e.nativeEvent.error)}
+        onError={(e) => safeLog('Image failed to load', e.nativeEvent.error)}
       />
     </View>
   );

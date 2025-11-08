@@ -1,3 +1,5 @@
+import { safeLog } from "@/utils/logSanitizer";
+
 // Platform polyfill for React Native
 (() => {
   const createPlatformPolyfill = () => ({
@@ -30,7 +32,7 @@
     // Fix TurboModule proxy issue
     if (!globalAny.__turboModuleProxy) {
       globalAny.__turboModuleProxy = function(name: string) {
-        console.warn(`TurboModule ${name} not available, using fallback`);
+        safeLog(`TurboModule ${name} not available, using fallback`);
         return null;
       };
     }

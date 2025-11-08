@@ -50,8 +50,8 @@ export const Shimmer: React.FC<ShimmerProps> = ({
       style={[
         styles.container,
         {
-          width,
-          height,
+          width: typeof width === 'number' ? width : undefined,
+          height: typeof height === 'number' ? height : undefined,
           borderRadius,
         },
         style,
@@ -74,6 +74,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#E5E7EB',
     overflow: 'hidden',
+    width: '100%',
   },
   shimmer: {
     width: '100%',

@@ -1,5 +1,7 @@
 // ============= Notification Types =============
 
+import { PaginationParams, PaginatedResponse } from './common';
+
 export interface Notification {
   id: string;
   type: 'transaction' | 'security' | 'system' | 'promotion';

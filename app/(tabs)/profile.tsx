@@ -4,6 +4,8 @@ import React, { useCallback, useLayoutEffect, useState, useMemo } from 'react';
 import { Chart, BalanceCard} from '@/components';
 import { Avatar } from '@rneui/base';
 import { usePortfolioOverview } from '@/api';
+import { ArrowDown, PlusIcon, ShoppingBasket } from 'lucide-react-native';
+import { Button } from '../../components/ui';
 
 const Profile = () => {
     const navigation = useNavigation();
@@ -90,7 +92,7 @@ const Profile = () => {
       <View className='px-[14px] '>
        {/* Error Banner (only shows if no cached data) */}
        {showError && (
-          <View className="mb-4 rounded-2xl bg-red-50 px-4 py-3">
+          <View className="mt-4 rounded-2xl bg-red-50 px-4 py-3">
             <Text className="text-sm font-body-bold text-red-900">Unable to load portfolio</Text>
             <Text className="mt-1 text-xs text-red-700">
               {error?.error?.message || 'Please check your connection.'}
@@ -111,12 +113,12 @@ const Profile = () => {
             timeframe="Last 30d"
             className="rounded-x"
           />
-        <Chart
-              data={chartData}
-              type="line"
-              width={900}
-              height={260}
-            />
+
+<View className="flex-row w-[90%] gap-3 mt-4">
+       <Button title='Manage Basket' leftIcon={<ShoppingBasket size={24} color="white" />}  className="w-[45%]" />
+       <Button title='Withdraw' leftIcon={<ArrowDown size={24} color="black" />} variant='secondary' className="w-[45%]" />
+      </View>
+   
       </View>
         
     </ScrollView>

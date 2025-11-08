@@ -1,5 +1,7 @@
 // ============= Wallet Types =============
 
+import { PaginationParams, PaginatedResponse } from './common';
+
 // Solana testnet only (simplified configuration)
 export type TestnetChain = 'SOL-DEVNET';
 

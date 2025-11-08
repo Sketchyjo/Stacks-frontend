@@ -38,6 +38,9 @@ export function useProtectedRoute() {
   // Initialize app: validate token and check welcome status
   // Runs on every mount (app reload) and re-validates routing
   useEffect(() => {
+    const HYDRATION_DELAY_MS = 500;
+    const TOKEN_FRESHNESS_THRESHOLD_MS = 10000; // 10 seconds
+
     const initializeApp = async () => {
       console.log('[Auth] App initializing - checking routing...');
       
@@ -47,10 +50,12 @@ export function useProtectedRoute() {
         
         // Wait for auth store to fully hydrate from AsyncStorage
         // This prevents race condition where tokens aren't loaded yet
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, HYDRATION_DELAY_MS));
         
         // Get fresh state after hydration
         const freshState = useAuthStore.getState();
+        const hasValidAuthData = freshState.isAuthenticated && freshState.accessToken;
+        
         console.log('[Auth] State after hydration:', {
           hasUser: !!freshState.user,
           hasAccessToken: !!freshState.accessToken,
@@ -58,19 +63,20 @@ export function useProtectedRoute() {
           isAuthenticated: freshState.isAuthenticated,
         });
         
-        if (freshState.isAuthenticated && freshState.accessToken) {
-          // Skip validation if user just authenticated (tokens are fresh)
-          const { lastActivityAt } = useAuthStore.getState();
+        if (hasValidAuthData) {
+          // Calculate token age to determine if validation is needed
+          const { lastActivityAt } = freshState;
           const tokenAge = lastActivityAt 
             ? Date.now() - new Date(lastActivityAt).getTime() 
             : Infinity;
           
-          // Only validate if token is older than 10 seconds (not just issued)
-          if (tokenAge > 10000) {
+          const isTokenFresh = tokenAge <= TOKEN_FRESHNESS_THRESHOLD_MS;
+          
+          // Only validate if token is older than threshold (not just issued)
+          if (!isTokenFresh) {
             const isValid = await validateAccessToken();
             if (!isValid) {
               console.log('[Auth] Token invalid on app load');
-              // Let SessionManager handle this - it will clear appropriately
               SessionManager.handleSessionExpired();
             }
           } else {

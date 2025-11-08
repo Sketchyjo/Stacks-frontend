@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authService, passcodeService } from '../api/services';
 import type { User as ApiUser } from '../api/types';
 import { secureStorage } from '../utils/secureStorage';
+import { safeError } from '../utils/logSanitizer';
 
 // Extend the API User type with additional local fields
 export interface User extends Omit<ApiUser, 'phone'> {
@@ -123,7 +124,7 @@ const createSecureStorage = () => ({
         if (parsed.passcodeSessionToken) {
           parsed.passcodeSessionToken = await secureStorage.getItem(`${name}_passcodeSessionToken`);
         }
-        return JSON.stringify(parsed);
+        return parsed;
       }
       return null;
     } catch (error) {
@@ -131,24 +132,23 @@ const createSecureStorage = () => ({
       return null;
     }
   },
-  setItem: async (name: string, value: string) => {
+  setItem: async (name: string, value: any) => {
     try {
-      const parsed = JSON.parse(value);
       // Store sensitive data in SecureStore
-      if (parsed.accessToken) {
-        await secureStorage.setItem(`${name}_accessToken`, parsed.accessToken);
-        delete parsed.accessToken;
+      if (value.accessToken) {
+        await secureStorage.setItem(`${name}_accessToken`, value.accessToken);
+        delete value.accessToken;
       }
-      if (parsed.refreshToken) {
-        await secureStorage.setItem(`${name}_refreshToken`, parsed.refreshToken);
-        delete parsed.refreshToken;
+      if (value.refreshToken) {
+        await secureStorage.setItem(`${name}_refreshToken`, value.refreshToken);
+        delete value.refreshToken;
       }
-      if (parsed.passcodeSessionToken) {
-        await secureStorage.setItem(`${name}_passcodeSessionToken`, parsed.passcodeSessionToken);
-        delete parsed.passcodeSessionToken;
+      if (value.passcodeSessionToken) {
+        await secureStorage.setItem(`${name}_passcodeSessionToken`, value.passcodeSessionToken);
+        delete value.passcodeSessionToken;
       }
       // Store non-sensitive data in AsyncStorage
-      await AsyncStorage.setItem(name, JSON.stringify(parsed));
+      await AsyncStorage.setItem(name, JSON.stringify(value));
     } catch (error) {
       console.error('Secure storage setItem parse error:', error);
       // Skip storing if parsing fails to prevent crashes
@@ -173,9 +173,29 @@ export const useAuthStore = create<AuthState & AuthActions>()(
 
       // Authentication
       login: async (email: string, password: string) => {
+        // Validate inputs
+        if (!email || !password) {
+          const error = new Error('Email and password are required');
+          set({ error: error.message, isLoading: false });
+          throw error;
+        }
+
+        // Check if account is locked
+        const { lockoutUntil } = get();
+        if (lockoutUntil && new Date(lockoutUntil) > new Date()) {
+          const remainingMinutes = Math.ceil((new Date(lockoutUntil).getTime() - Date.now()) / 60000);
+          const error = new Error(`Account locked. Try again in ${remainingMinutes} minute(s)`);
+          set({ error: error.message, isLoading: false });
+          throw error;
+        }
+
         set({ isLoading: true, error: null });
         try {
           const response = await authService.login({ email, password });
+          
+          if (!response.user || !response.accessToken || !response.refreshToken) {
+            throw new Error('Invalid response from authentication service');
+          }
           
           const now = new Date();
           const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
@@ -194,7 +214,9 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             lockoutUntil: null,
             isLoading: false,
           });
-        } catch (error) {
+        } catch (error: any) {
+          safeError('[AuthStore] Login failed:', error);
+          
           // Increment failed attempts
           const currentAttempts = get().loginAttempts;
           const newAttempts = currentAttempts + 1;
@@ -208,8 +230,9 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             set({ loginAttempts: newAttempts });
           }
 
+          const errorMessage = error?.error?.message || error?.message || 'Login failed. Please check your credentials.';
           set({
-            error: error instanceof Error ? error.message : 'Login failed',
+            error: errorMessage,
             isLoading: false,
           });
           throw error;
@@ -242,9 +265,26 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       },
 
       register: async (email: string, password: string, name: string) => {
+        // Validate inputs
+        if (!email || !password) {
+          const error = new Error('Email and password are required');
+          set({ error: error.message, isLoading: false });
+          throw error;
+        }
+
+        if (password.length < 8) {
+          const error = new Error('Password must be at least 8 characters');
+          set({ error: error.message, isLoading: false });
+          throw error;
+        }
+
         set({ isLoading: true, error: null });
         try {
           const response = await authService.register({ email, password });
+          
+          if (!response.identifier && !email) {
+            throw new Error('Invalid response from registration service');
+          }
           
           // Store pending email but DON'T authenticate yet - user needs to verify
           set({
@@ -253,9 +293,11 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             user: null,
             isLoading: false,
           });
-        } catch (error) {
+        } catch (error: any) {
+          safeError('[AuthStore] Registration failed:', error);
+          const errorMessage = error?.error?.message || error?.message || 'Registration failed. Please try again.';
           set({
-            error: error instanceof Error ? error.message : 'Registration failed',
+            error: errorMessage,
             isLoading: false,
           });
           throw error;
@@ -505,6 +547,10 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         // Security
         loginAttempts: state.loginAttempts,
         lockoutUntil: state.lockoutUntil,
+        
+        // Include loading and error to satisfy type
+        isLoading: state.isLoading,
+        error: state.error,
       }),
     }
   )

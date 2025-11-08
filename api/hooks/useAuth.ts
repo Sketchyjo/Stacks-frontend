@@ -66,13 +66,17 @@ export function useRegister() {
  * Verify email code mutation
  */
 export function useVerifyCode() {
+  const TOKEN_EXPIRY_DAYS = 7;
+  const DEFAULT_ONBOARDING_STATUS = 'wallets_pending';
+
   return useMutation({
     mutationFn: (data: VerifyCodeRequest) => authService.verifyCode(data),
     onSuccess: (response) => {
       const now = new Date();
-      const expiresAt = response.expiresAt 
+      const defaultExpiryTime = new Date(now.getTime() + TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+      const tokenExpiresAt = response.expiresAt 
         ? new Date(response.expiresAt)
-        : new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+        : defaultExpiryTime;
       
       useAuthStore.setState({
         user: response.user,
@@ -80,10 +84,10 @@ export function useVerifyCode() {
         refreshToken: response.refreshToken,
         isAuthenticated: true,
         pendingVerificationEmail: null,
-        onboardingStatus: response.user.onboardingStatus || 'wallets_pending',
+        onboardingStatus: response.user.onboardingStatus || DEFAULT_ONBOARDING_STATUS,
         lastActivityAt: now.toISOString(),
         tokenIssuedAt: now.toISOString(),
-        tokenExpiresAt: expiresAt.toISOString(),
+        tokenExpiresAt: tokenExpiresAt.toISOString(),
       });
     },
   });

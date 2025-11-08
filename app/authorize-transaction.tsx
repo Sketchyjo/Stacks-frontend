@@ -31,7 +31,7 @@ export default function AuthorizeTransactionScreen() {
   const [showPasscode, setShowPasscode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const PIN_LENGTH = 6;
+  const PIN_LENGTH = 4;
 
   const verifyPasscodeMutation = useVerifyPasscode();
 
@@ -59,23 +59,30 @@ export default function AuthorizeTransactionScreen() {
   );
 
   const handlePasscodeSubmit = async (code: string) => {
+    if (!code || code.length !== PIN_LENGTH) {
+      setError('Please enter a valid PIN');
+      return;
+    }
+
     setIsLoading(true);
+    setError('');
 
     try {
       const result = await verifyPasscodeMutation.mutateAsync({ passcode: code });
 
       if (result.verified) {
-        // Passcode verified, proceed with transaction
         console.log('Passcode verified, transaction authorized:', { transactionId, amount, type, recipient });
         // TODO: Call transaction authorization API here
         router.replace('/transaction-success');
       } else {
-        // This shouldn't happen with the API, but handle error
-        setError('Invalid passcode');
+        setError('Invalid passcode. Please try again.');
+        setPasscode('');
       }
-    } catch (error) {
-      console.error('Passcode verification failed:', error);
-      setError('Failed to verify passcode');
+    } catch (error: any) {
+      console.error('[AuthorizeTransaction] Passcode verification failed:', error);
+      const errorMessage = error?.error?.message || error?.message || 'Failed to verify passcode. Please try again.';
+      setError(errorMessage);
+      setPasscode('');
     } finally {
       setIsLoading(false);
     }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ComponentType } from 'react';
 import { SvgProps } from 'react-native-svg';
 
 // Import SVG icons
@@ -54,7 +54,7 @@ export interface SvgIconProps extends SvgProps {
 }
 
 // Icon mapping
-const iconMap: Record<string, React.FC<SvgProps>> = {
+const iconMap: Record<string, ComponentType<SvgProps>> = {
   'account-balance-10': AccountBalance10,
   'account-balance-wallet-11': AccountBalanceWallet11,
   'attach-money-9': AttachMoney9,

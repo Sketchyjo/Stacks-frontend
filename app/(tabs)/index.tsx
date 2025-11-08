@@ -3,11 +3,11 @@ import React, { useLayoutEffect, useMemo, useState, useCallback } from 'react';
 import { router, useNavigation } from 'expo-router';
 import { BalanceCard } from '@/components/molecules/BalanceCard';
 import { BasketItemCard } from '@/components/molecules/BasketItemCard';
-import { Bell, Grid3X3Icon, User } from 'lucide-react-native';
+import { ArrowDown, Bell, Grid3X3Icon, PlusIcon, User } from 'lucide-react-native';
 import { TransactionList } from '@/components/molecules/TransactionList';
 import type { Transaction } from '@/components/molecules/TransactionItem';
 import { usePortfolioOverview } from '@/api/hooks';
-import { ActionButton } from '@/components';
+import { Button } from '../../components/ui';
 import { ActionSlideshow, SlideData } from '@/components/molecules/ActionSlideshow';
 
 const Dashboard = () => {
@@ -200,34 +200,9 @@ const Dashboard = () => {
             className="rounded-x"
           />
 
-      <View className="flex-row justify-between px-[14px] pb-6">
-        <ActionButton
-          icon="shopping-basket"
-          label="Create"
-          bgColor="bg-[#F7F7F7]"
-          onPress={() => router.push('/basket/create')}
-        />
-
-        <ActionButton
-          icon="arrow-down"
-          label="Top Up"
-          bgColor="bg-[#F7F7F7]"
-          onPress={() => router.push('/deposit')}
-        />
-
-        <ActionButton
-          icon="arrow-up"
-          label="Withdraw"
-          bgColor="bg-[#F7F7F7]"
-          onPress={() => router.push('/withdraw')}
-        />
-
-        <ActionButton
-          icon="file-clock"
-          label="History"
-          bgColor="bg-[#F7F7F7]"
-          // onPress={onHistoryPress}
-        />
+      <View className="flex-row w-[80%] gap-3 mt-4">
+       <Button title='Add funds' onPress={( ) => router.navigate("/deposit")} leftIcon={<PlusIcon size={24} color="white" />}  className="w-[40%]" />
+       <Button title='Withdraw' onPress={( ) => router.navigate("/withdraw")} leftIcon={<ArrowDown size={24} color="black" />} variant='secondary' className="w-[40%]" />
       </View>
         </View>
 

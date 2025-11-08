@@ -1,9 +1,9 @@
 // Learn more https://docs.expo.io/guides/customizing-metro
-const { getDefaultConfig } = require('expo/metro-config');
-const { withNativeWind } = require('nativewind/metro');
+const getDefaultConfig = () => require('expo/metro-config').getDefaultConfig(__dirname);
+const withNativeWind = () => require('nativewind/metro').withNativeWind;
 
 /** @type {import('expo/metro-config').MetroConfig} */
-const config = getDefaultConfig(__dirname);
+const config = getDefaultConfig();
 
 config.transformer = {
   ...config.transformer,
@@ -16,4 +16,4 @@ config.resolver = {
   sourceExts: [...config.resolver.sourceExts, 'svg'],
 };
 
-module.exports = withNativeWind(config, { input: './global.css' });
+module.exports = withNativeWind()(config, { input: './global.css' });

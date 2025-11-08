@@ -1,23 +1,10 @@
 import { create } from 'zustand';
 import { walletService } from '../api/services';
+import type { Token, Network } from '@/lib/domain/wallet/models';
+import { MOCK_TOKENS } from '@/__mocks__/wallet.mock';
+import { ERROR_MESSAGES } from '@/lib/constants/messages';
 
-export interface Token {
-  id: string;
-  symbol: string;
-  name: string;
-  balance: number;
-  usdValue: number;
-  priceChange: number;
-  network: string;
-  icon: string;
-}
-
-export interface Network {
-  id: string;
-  name: string;
-  symbol: string;
-  icon: string;
-}
+export type { Token, Network } from '@/lib/domain/wallet/models';
 
 export interface BridgeProvider {
   id: string;
@@ -109,7 +96,6 @@ export interface WithdrawalActions {
   reset: () => void;
 }
 
-// Mock data - Solana only
 const MOCK_RECIPIENTS: Recipient[] = [
   {
     id: '1',
@@ -122,29 +108,6 @@ const MOCK_RECIPIENTS: Recipient[] = [
     name: 'Solana Wallet 2',
     type: 'address',
     address: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
-  },
-];
-
-const MOCK_TOKENS: Token[] = [
-  {
-    id: 'usdc',
-    symbol: 'USDC',
-    name: 'USD Coin',
-    balance: 199.9,
-    usdValue: 199.9,
-    priceChange: -0.01,
-    network: 'Solana',
-    icon: 'usdc',
-  },
-  {
-    id: 'usdt',
-    symbol: 'USDT',
-    name: 'Tether',
-    balance: 500,
-    usdValue: 500,
-    priceChange: 0.02,
-    network: 'Solana',
-    icon: 'usdt',
   },
 ];
 
@@ -309,7 +272,7 @@ export const useWithdrawalStore = create<WithdrawalState & WithdrawalActions>((s
         showConfirmModal: false,
         isLoading: false,
         errors: { 
-          general: error instanceof Error ? error.message : 'Transaction failed. Please try again.' 
+          general: error instanceof Error ? error.message : ERROR_MESSAGES.WALLET.TRANSFER_FAILED
         }
       });
     }
@@ -321,17 +284,17 @@ export const useWithdrawalStore = create<WithdrawalState & WithdrawalActions>((s
     const numAmount = parseFloat(amount);
     
     if (!amount || amount === '0') {
-      set({ errors: { amount: 'Please enter an amount' } });
+      set({ errors: { amount: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD } });
       return false;
     }
     
     if (isNaN(numAmount) || numAmount <= 0) {
-      set({ errors: { amount: 'Please enter a valid amount' } });
+      set({ errors: { amount: ERROR_MESSAGES.VALIDATION.INVALID_AMOUNT } });
       return false;
     }
     
     if (selectedToken && numAmount > selectedToken.balance) {
-      set({ errors: { amount: 'Insufficient balance' } });
+      set({ errors: { amount: ERROR_MESSAGES.WALLET.INSUFFICIENT_BALANCE } });
       return false;
     }
     
@@ -342,15 +305,14 @@ export const useWithdrawalStore = create<WithdrawalState & WithdrawalActions>((s
     const { recipientAddress } = get();
     
     if (!recipientAddress.trim()) {
-      set({ errors: { address: 'Please enter a Solana wallet address' } });
+      set({ errors: { address: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD } });
       return false;
     }
     
-    // Basic validation for Solana address (base58, 32-44 characters)
     const isValidSolanaAddress = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipientAddress);
     
     if (!isValidSolanaAddress) {
-      set({ errors: { address: 'Invalid Solana wallet address' } });
+      set({ errors: { address: ERROR_MESSAGES.WALLET.INVALID_ADDRESS } });
       return false;
     }
     

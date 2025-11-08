@@ -1,5 +1,7 @@
 # STACK - Web3-Native Investment Platform
 
+ **[Backend](https://github.com/Sketchyjo/STACK-BACKEND-SERVICE)** 
+
 <div align="center">
 
 **The safe, fun, no-BS way for Gen Z to grow money without banks or crypto headaches.**

@@ -10,6 +10,7 @@ import { Icon } from '../atoms/Icon';
 import { ArrowDown, ArrowDown01, ChevronDown, Eye, EyeOff } from 'lucide-react-native';
 import { useUIStore } from '@/stores';
 import { ActionSlideshow } from './ActionSlideshow';
+import { sanitizeNumber } from '@/utils/sanitizeInput';
 
 export interface BalanceCardProps extends ViewProps {
   balance?: string;
@@ -44,9 +45,10 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
 
   // Helper function to mask balance values
   const maskValue = (value: string) => {
-    if (isBalanceVisible) return value;
+    const sanitized = sanitizeNumber(String(value));
+    if (isBalanceVisible) return sanitized;
     // Replace numbers with dashes, keep currency symbol
-    return value.replace(/[\d,\.]+/g, (match) => '−'.repeat(Math.min(match.length, 6)));
+    return sanitized.replace(/[\d,\.]+/g, (match) => '−'.repeat(Math.min(match.length, 6)));
   };
 
   return (

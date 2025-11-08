@@ -1,33 +1,14 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persist } from 'zustand/middleware';
 import { walletService } from '../api/services';
 import { encryptObject, decryptObject } from '../utils/encryption';
+import { safeError } from '../utils/logSanitizer';
+import type { Token, Transaction } from '@/lib/domain/wallet/models';
+import { MOCK_TOKENS, MOCK_TRANSACTIONS } from '@/__mocks__/wallet.mock';
+import { ERROR_MESSAGES } from '@/lib/constants/messages';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export interface Token {
-  id: string;
-  symbol: string;
-  name: string;
-  balance: number;
-  usdValue: number;
-  priceChange: number;
-  network: string;
-  icon: string;
-}
-
-export interface Transaction {
-  id: string;
-  type: 'send' | 'receive' | 'swap' | 'deposit' | 'withdraw';
-  token: Token;
-  amount: string;
-  usdAmount: string;
-  from?: string;
-  to?: string;
-  timestamp: string;
-  status: 'pending' | 'completed' | 'failed';
-  txHash?: string;
-  fee?: string;
-}
+export type { Token, Transaction } from '@/lib/domain/wallet/models';
 
 interface WalletState {
   // Balances
@@ -70,53 +51,7 @@ interface WalletActions {
   reset: () => void;
 }
 
-// Mock data - Solana tokens only
-const MOCK_TOKENS: Token[] = [
-  {
-    id: 'usdc',
-    symbol: 'USDC',
-    name: 'USD Coin',
-    balance: 199.9,
-    usdValue: 199.9,
-    priceChange: -0.01,
-    network: 'Solana',
-    icon: 'usdc',
-  },
-  {
-    id: 'usdt',
-    symbol: 'USDT',
-    name: 'Tether',
-    balance: 500,
-    usdValue: 500,
-    priceChange: 0.02,
-    network: 'Solana',
-    icon: 'usdt',
-  },
-  {
-    id: 'sol',
-    symbol: 'SOL',
-    name: 'Solana',
-    balance: 2.5,
-    usdValue: 312.5,
-    priceChange: 5.3,
-    network: 'Solana',
-    icon: 'sol',
-  },
-];
 
-const MOCK_TRANSACTIONS: Transaction[] = [
-  {
-    id: '1',
-    type: 'receive',
-    token: MOCK_TOKENS[0],
-    amount: '50.00 USDC',
-    usdAmount: '$50.00',
-    from: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
-    timestamp: new Date().toISOString(),
-    status: 'completed',
-    txHash: '0xabc123',
-  },
-];
 
 const initialState: WalletState = {
   tokens: MOCK_TOKENS,
@@ -133,7 +68,7 @@ const createEncryptedStorage = () => ({
     try {
       const encrypted = await AsyncStorage.getItem(name);
       if (encrypted) {
-        return decryptObject(encrypted);
+        return JSON.parse(decryptObject(encrypted));
       }
       return null;
     } catch (error) {
@@ -141,9 +76,9 @@ const createEncryptedStorage = () => ({
       return null;
     }
   },
-  setItem: async (name: string, value: string) => {
+  setItem: async (name: string, value: any) => {
     try {
-      const encrypted = encryptObject(JSON.parse(value));
+      const encrypted = encryptObject(value);
       await AsyncStorage.setItem(name, encrypted);
     } catch (error) {
       console.error('Encrypted storage setItem error:', error);
@@ -169,30 +104,50 @@ export const useWalletStore = create<WalletState & WalletActions>()(
         try {
           const balance = await walletService.getBalance();
           
-          // Transform API response to match store structure
-          const tokens: Token[] = balance.tokens.map(token => ({
-            id: token.symbol.toLowerCase(),
-            symbol: token.symbol,
-            name: token.name,
-            balance: parseFloat(token.balance),
-            usdValue: parseFloat(token.usdValue),
-            priceChange: token.priceChange24h || 0,
-            network: token.network || 'Solana',
-            icon: token.symbol.toLowerCase(),
-          }));
+          if (!balance || !balance.tokens) {
+            throw new Error('Invalid response from wallet service');
+          }
           
-          set({
-            tokens,
-            isLoading: false,
-          });
+          // Transform API response to match store structure
+          const tokens: Token[] = balance.tokens.map((token: any) => {
+            if (!token.symbol || !token.name) {
+              safeError('[WalletStore] Invalid token data', { hasSymbol: !!token.symbol, hasName: !!token.name });
+              return null;
+            }
+            return {
+              id: token.symbol.toLowerCase(),
+              symbol: token.symbol,
+              name: token.name,
+              balance: parseFloat(token.balance) || 0,
+              usdValue: parseFloat(token.usdValue) || 0,
+              priceChange: token.priceChange24h || 0,
+              network: token.network || 'Solana',
+              icon: token.symbol.toLowerCase(),
+            };
+          }).filter(Boolean) as Token[];
+          
+          if (tokens.length === 0) {
+            safeError('[WalletStore] No valid tokens received, using mock data');
+            set({
+              tokens: MOCK_TOKENS,
+              isLoading: false,
+            });
+          } else {
+            set({
+              tokens,
+              isLoading: false,
+            });
+          }
           
           get().calculateTotalBalance();
-        } catch (error) {
-          console.error('[WalletStore] Failed to fetch tokens:', error);
+        } catch (error: any) {
+          safeError('[WalletStore] Failed to fetch tokens:', error);
+          const errorMessage = error?.error?.message || error?.message || ERROR_MESSAGES.WALLET.LOAD_FAILED;
+          
           // Fallback to mock data if API fails
           set({
             tokens: MOCK_TOKENS,
-            error: error instanceof Error ? error.message : 'Failed to fetch tokens',
+            error: errorMessage,
             isLoading: false,
           });
           get().calculateTotalBalance();
@@ -201,7 +156,7 @@ export const useWalletStore = create<WalletState & WalletActions>()(
 
       updateTokenBalance: (tokenId: string, balance: number) => {
         const { tokens } = get();
-        const updatedTokens = tokens.map(token =>
+        const updatedTokens = tokens.map((token: Token) =>
           token.id === tokenId
             ? { ...token, balance, usdValue: balance }
             : token
@@ -215,12 +170,12 @@ export const useWalletStore = create<WalletState & WalletActions>()(
         set({ isLoading: true });
         try {
           const { tokens } = get();
-          const tokenIds = tokens.map(t => t.symbol);
+          const tokenIds = tokens.map((t: Token) => t.symbol);
           
           // Fetch latest prices from API
           const pricesResponse = await walletService.getPrices({ tokenIds });
           
-          const updatedTokens = tokens.map(token => {
+          const updatedTokens = tokens.map((token: Token) => {
             const priceData = pricesResponse.prices.find(p => p.symbol === token.symbol);
             return {
               ...token,
@@ -236,9 +191,9 @@ export const useWalletStore = create<WalletState & WalletActions>()(
           
           get().calculateTotalBalance();
         } catch (error) {
-          console.error('[WalletStore] Failed to refresh prices:', error);
+          safeError('[WalletStore] Failed to refresh prices:', error);
           set({
-            error: error instanceof Error ? error.message : 'Failed to refresh prices',
+            error: error instanceof Error ? error.message : ERROR_MESSAGES.WALLET.LOAD_FAILED,
             isLoading: false,
           });
         }
@@ -251,7 +206,7 @@ export const useWalletStore = create<WalletState & WalletActions>()(
           const txResponse = await walletService.getTransactions({ limit: 50 });
           
           // Transform API transactions to store format
-          const transactions: Transaction[] = txResponse.data.map(tx => ({
+          const transactions: Transaction[] = txResponse.data.map((tx: any) => ({
             id: tx.id,
             type: tx.type as Transaction['type'],
             token: {
@@ -279,11 +234,11 @@ export const useWalletStore = create<WalletState & WalletActions>()(
             isLoading: false,
           });
         } catch (error) {
-          console.error('[WalletStore] Failed to fetch transactions:', error);
+          safeError('[WalletStore] Failed to fetch transactions:', error);
           // Fallback to mock data if API fails
           set({
             transactions: MOCK_TRANSACTIONS,
-            error: error instanceof Error ? error.message : 'Failed to fetch transactions',
+            error: error instanceof Error ? error.message : ERROR_MESSAGES.WALLET.LOAD_FAILED,
             isLoading: false,
           });
         }
@@ -296,7 +251,7 @@ export const useWalletStore = create<WalletState & WalletActions>()(
 
       updateTransactionStatus: (txId: string, status: Transaction['status']) => {
         const { transactions } = get();
-        const updatedTransactions = transactions.map(tx =>
+        const updatedTransactions = transactions.map((tx: Transaction) =>
           tx.id === txId ? { ...tx, status } : tx
         );
         set({ transactions: updatedTransactions });
@@ -310,7 +265,7 @@ export const useWalletStore = create<WalletState & WalletActions>()(
       // Calculations
       calculateTotalBalance: () => {
         const { tokens } = get();
-        const total = tokens.reduce((sum, token) => sum + token.usdValue, 0);
+        const total = tokens.reduce((sum: number, token: Token) => sum + token.usdValue, 0);
         set({ totalBalanceUSD: total });
       },
 
@@ -336,9 +291,9 @@ export const useWalletStore = create<WalletState & WalletActions>()(
     {
       name: 'wallet-storage',
       storage: createEncryptedStorage(),
-      partialize: (state) => ({
-        tokens: state.tokens, // Sensitive: balances and holdings
-        transactions: state.transactions, // Sensitive: transaction history
+      partialize: (state: WalletState & WalletActions) => ({
+        tokens: state.tokens,
+        transactions: state.transactions,
         selectedToken: state.selectedToken,
       }),
     }

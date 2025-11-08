@@ -15,7 +15,7 @@ export const TransactionSuccessView: React.FC<TransactionSuccessViewProps> = ({
   const handleViewOnExplorer = () => {
     // Open Solscan or appropriate explorer
     const explorerUrl = `https://solscan.io/tx/${transaction.txHash}`;
-    Linking.openURL(explorerUrl).catch(err => console.error('Failed to open URL:', err));
+    Linking.openURL(explorerUrl).catch(() => {});
   };
 
   return (

@@ -2,7 +2,9 @@
 module.exports = {
   content: ['./app/**/*.{js,ts,tsx}', './components/**/*.{js,ts,tsx}'],
 
-  presets: [require('nativewind/preset')],
+  get presets() {
+    return [require('nativewind/preset')];
+  },
   theme: {
     extend: {
       colors: {

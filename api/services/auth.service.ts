@@ -104,6 +104,13 @@ export const authService = {
   async resetPassword(data: ResetPasswordRequest): Promise<void> {
     return apiClient.post(AUTH_ENDPOINTS.RESET_PASSWORD, data);
   },
+
+  /**
+   * Get current authenticated user
+   */
+  async getCurrentUser(): Promise<any> {
+    return apiClient.get('/v1/auth/me');
+  },
 };
 
 export default authService;

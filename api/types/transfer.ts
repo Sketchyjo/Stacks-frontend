@@ -1,5 +1,7 @@
 // ============= Transfer/Withdrawal Types =============
 
+import { Transaction } from './wallet';
+
 export interface CreateTransferRequest {
   tokenId: string;
   toAddress: string;

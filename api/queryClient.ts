@@ -5,6 +5,7 @@
 
 import { QueryClient } from '@tanstack/react-query';
 import type { ApiError } from './types';
+import { safeError } from '../utils/logSanitizer';
 
 /**
  * Default query options
@@ -45,14 +46,14 @@ const defaultQueryOptions = {
     retry: 1,
     
     // Error handling for mutations
-    onError: (error: ApiError) => {
+    onError: (error: Error) => {
       // Global error handling for mutations
       if (__DEV__) {
-        console.error('[Mutation Error]', error);
+        safeError('[Mutation Error]', error);
       }
       
       // You can add global error notifications here
-      // e.g., Toast.show({ type: 'error', message: error.error.message });
+      // e.g., Toast.show({ type: 'error', message: error.message });
     },
   },
 };
